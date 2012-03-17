@@ -1,0 +1,7 @@
+ironpython-read-only
+IronPythonTest2
+DockPanel_Src/WinFormsUI/obj
+DockPanel_Src/WinFormsUI/bin
+PyDoodle/bin
+PyDoodle/obj
+*.suo

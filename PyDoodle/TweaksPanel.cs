@@ -17,27 +17,24 @@ namespace PyDoodle
         private List<Tweakable> _tweakables;
 
         public TweaksPanel()
-            : this(null)
-        {
-        }
-
-        public TweaksPanel(ScriptEngine se)
         {
             InitializeComponent();
 
-            _tweakables = new List<Tweakable>();
-
             _operations = null;
-            if (se != null)
-                _operations = se.CreateOperations();
+            _tweakables = null;
+        }
 
-            _leftPanel.Height = 0;
-            _rightPanel.Height = 0;
+        public void Reset(ScriptEngine se)
+        {
+            _tweakables=new List<Tweakable>();
+
+            _operations=se.CreateOperations();
+
+            ArrangeControls();
         }
 
         private class Tweakable
         {
-            public int y = 0;
             public object Pyobj = null;
             public string Attr = null;
             public TweakControl.TweakControlCreator Creator = null;
@@ -108,15 +105,13 @@ namespace PyDoodle
                     t.TweakControl.Tag = t;
                 }
 
-                t.y = y;
-
                 labelsW = Math.Max(labelsW, t.label.PreferredWidth);
 
-                t.label.Top = t.y;
+                t.label.Top = y;
                 t.label.Height = t.TweakControl.Height;
                 t.label.BackColor = colours[colourIdx];
 
-                t.TweakControl.Top = t.y;
+                t.TweakControl.Top = y;
                 t.TweakControl.BackColor = colours[colourIdx];
                 t.TweakControl.SetValue(_operations.GetMember(t.Pyobj, t.Attr));
 
@@ -138,7 +133,8 @@ namespace PyDoodle
             TweakControl tweakControl = sender as TweakControl;
             Tweakable t = tweakControl.Tag as Tweakable;
 
-            _operations.SetMember(t.Pyobj, t.Attr, ea.Value);
+            if (_operations != null)
+                _operations.SetMember(t.Pyobj, t.Attr, ea.Value);
         }
     }
 }

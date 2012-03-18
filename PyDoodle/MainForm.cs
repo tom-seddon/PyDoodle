@@ -1,4 +1,9 @@
-﻿using System;
+﻿using IronPython.Hosting;
+using IronPython.Runtime;
+using IronPython.Runtime.Types;
+using Microsoft.Scripting.Hosting;
+using Microsoft.Scripting.Hosting.Providers;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -6,27 +11,33 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using Microsoft.Scripting.Hosting;
-using Microsoft.Scripting.Hosting.Providers;
-using IronPython.Runtime;
-using IronPython.Hosting;
-using IronPython.Runtime.Types;
 using WeifenLuo.WinFormsUI.Docking;
+using System.IO;
 
 namespace PyDoodle
 {
     public partial class MainForm : Form
     {
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         private GraphicsPanel _graphicsPanel;
         private TextPanel _textPanel;
         private TweaksPanel _tweaksPanel;
 
         private ScriptEngine _scriptEngine;
-        private List<string> _scriptEngineDefaultSearchPaths;
         private ObjectOperations _objectOperations;
-        private object _runPyobj;
         private pydoodleModule _pydoodleModule;
         private ScriptScope _scriptScope;
+
+        private string _scriptFileName;
+        private bool _isRerunPending;
+        private object _runPyobj;
+
+        private FileChangeWatcher _fileChangeWatcher;
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
         public object RunPyobj
         {
@@ -34,24 +45,21 @@ namespace PyDoodle
             set { _runPyobj = value; }
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         // bleargh
         public TweaksPanel TweaksPanel
         {
             get { return _tweaksPanel; }
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public MainForm()
         {
             InitializeComponent();
-
-            Dictionary<string, object> options = new Dictionary<string, object>();
-
-            options["Debug"] = true;
-
-            _scriptEngine = Python.CreateEngine(options);
-            _scriptEngineDefaultSearchPaths = new List<string>(_scriptEngine.GetSearchPaths());
-
-            _objectOperations = _scriptEngine.CreateOperations();
 
             _graphicsPanel = new GraphicsPanel();
             _graphicsPanel.Show(_dockPanel, DockState.Document);
@@ -60,19 +68,21 @@ namespace PyDoodle
             _textPanel = new TextPanel();
             _textPanel.Show(_dockPanel, DockState.Document);
 
-            _tweaksPanel = new TweaksPanel(_scriptEngine);
+            _tweaksPanel = new TweaksPanel();
             _tweaksPanel.Show(_dockPanel, DockState.Document);
 
             _graphicsPanel.Show(_dockPanel);
 
-            _pydoodleModule = new pydoodleModule(_scriptEngine, this);
-
+            _scriptEngine = null;
+            _objectOperations = null;
+            _pydoodleModule = null;
             _scriptScope = null;
 
-            ResetScriptStuff();
-
-            RunScript(@"C:\tom\PyDoodle\test.py");
+            RunScript(@"C:\tom\pydoodle\test.py");
         }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
         public void OnGraphicsPanelPaint(object sender, PaintEventArgs e)
         {
@@ -85,6 +95,9 @@ namespace PyDoodle
                 _pydoodleModule.Graphics = null;
             }
         }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -102,13 +115,65 @@ namespace PyDoodle
             RunScript(ofd.FileName);
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void HandleFileChangeWatcherChanged(object sender, FileSystemEventArgs fsea)
+        {
+            if (!_isRerunPending)
+            {
+                this.BeginInvoke(new Action<string>(this.RunScript), new object[] { _scriptFileName, });
+                _isRerunPending = true;
+            }
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void StopScript()
+        {
+            if (_fileChangeWatcher != null)
+            {
+                _fileChangeWatcher.Changed -= this.HandleFileChangeWatcherChanged;
+
+                _fileChangeWatcher.Dispose();
+                _fileChangeWatcher = null;
+            }
+
+            _scriptEngine = null;
+            _objectOperations = null;
+            _pydoodleModule = null;
+            _scriptScope = null;
+            _scriptFileName = null;
+            _isRerunPending = false;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public void RunScript(string fileName)
         {
-            string filePath = Misc.TryGetDirectoryName(fileName);
+            StopScript();
+
+            // Initialise basic script stuff.
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["Debug"] = true;
+
+            _scriptEngine = Python.CreateEngine(options);
+
+            _objectOperations = _scriptEngine.CreateOperations();
+
+            // Add pydoodle module.
+            _pydoodleModule = new pydoodleModule(_scriptEngine, this);
+
+            // Link with tweaks panel.
+            _tweaksPanel.Reset(_scriptEngine);
+
+            // Fiddle with python module search paths. Replace "." with the path to the loaded script.
+            string filePath = Misc.GetPathDirectoryName(fileName);
             if (filePath != null)
             {
-                // Replace "." in the search paths with the path to the file.
-                List<string> paths = new List<string>(_scriptEngineDefaultSearchPaths);
+                List<string> paths = new List<string>(_scriptEngine.GetSearchPaths());
 
                 paths.Remove(".");
                 paths.Insert(0, filePath);
@@ -119,43 +184,18 @@ namespace PyDoodle
             foreach (string path in _scriptEngine.GetSearchPaths())
                 Console.WriteLine("Search Path: {0}", path);
 
-            _scriptScope = _scriptEngine.ExecuteFile(fileName);
+            // go!
+            _scriptFileName = fileName;
+            _scriptScope = _scriptEngine.ExecuteFile(_scriptFileName);
 
-            foreach (string module in GetModuleFileNames(_scriptEngine))
-                Console.WriteLine("Module: {0}", module);
+            // Watch for further changes.
+            _fileChangeWatcher = new FileChangeWatcher(Misc.GetModuleFileNames(_scriptEngine));
+            _fileChangeWatcher.Changed += this.HandleFileChangeWatcherChanged;
+            _isRerunPending = false;
         }
 
-        private static List<string> GetModuleFileNames(ScriptEngine se)
-        {
-            List<string> moduleFileNames = new List<string>();
-
-            PythonDictionary modules = se.GetSysModule().GetVariable("modules") as PythonDictionary;
-            if (modules != null)
-            {
-                foreach (KeyValuePair<object, object> kvp in modules)
-                {
-                    PythonModule module = kvp.Value as PythonModule;
-
-                    if (module != null)
-                    {
-                        object fileNameObj;
-                        if (module.Get__dict__().TryGetValue("__file__", out fileNameObj))
-                        {
-                            string fileName = fileNameObj as string;
-                            if (fileName != null && fileName.Length > 0)
-                                moduleFileNames.Add((string)fileName);
-                        }
-                    }
-                }
-            }
-
-            return moduleFileNames;
-        }
-
-        private void ResetScriptStuff()
-        {
-            _runPyobj = null;
-        }
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
         private void _timer_Tick(object sender, EventArgs e)
         {

@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileChangeWatcher.cs" />
     <Compile Include="GraphicsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

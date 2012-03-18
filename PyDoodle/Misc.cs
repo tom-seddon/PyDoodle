@@ -4,11 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.IO;
+using Microsoft.Scripting.Hosting;
+using IronPython.Runtime;
+using IronPython.Hosting;
 
 namespace PyDoodle
 {
     public static class Misc
     {
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public static void ColorToHSV(Color color, out double hue, out double saturation, out double value)
         {
             int max = Math.Max(color.R, Math.Max(color.G, color.B));
@@ -18,6 +24,9 @@ namespace PyDoodle
             saturation = (max == 0) ? 0 : 1d - (1d * min / max);
             value = max / 255d;
         }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
         public static Color ColorFromHSV(double hue, double saturation, double value)
         {
@@ -44,6 +53,9 @@ namespace PyDoodle
                 return Color.FromArgb(255, v, p, q);
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public static Color TransformedColour(Color colour, double dh, double ds, double dv)
         {
             double h, s, v;
@@ -66,20 +78,75 @@ namespace PyDoodle
             return ColorFromHSV(h, s, v);
         }
 
-        public static string TryGetDirectoryName(string file)
-        {
-            if (file == "")
-                return null;
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
-            try
+        public static string GetPathDirectoryName(string path)
+        {
+            if (path != "")
             {
-                return Path.GetDirectoryName(file);
-            }
-            catch (ArgumentException)
-            {
+                try
+                {
+                    return Path.GetDirectoryName(path);
+                }
+                catch (ArgumentException)
+                {
+                }
             }
 
             return null;
         }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static string GetPathFileName(string path)
+        {
+            if (path != "")
+            {
+                try
+                {
+                    return Path.GetFileName(path);
+                }
+                catch (ArgumentException)
+                {
+                }
+            }
+
+            return null;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static List<string> GetModuleFileNames(ScriptEngine se)
+        {
+            List<string> moduleFileNames = new List<string>();
+
+            PythonDictionary modules = se.GetSysModule().GetVariable("modules") as PythonDictionary;
+            if (modules != null)
+            {
+                foreach (KeyValuePair<object, object> kvp in modules)
+                {
+                    PythonModule module = kvp.Value as PythonModule;
+
+                    if (module != null)
+                    {
+                        object fileNameObj;
+                        if (module.Get__dict__().TryGetValue("__file__", out fileNameObj))
+                        {
+                            string fileName = fileNameObj as string;
+                            if (fileName != null && fileName.Length > 0)
+                                moduleFileNames.Add((string)fileName);
+                        }
+                    }
+                }
+            }
+
+            return moduleFileNames;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
     }
 }

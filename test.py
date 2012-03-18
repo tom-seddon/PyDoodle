@@ -18,8 +18,16 @@ class Test:
         self.str="Test String"
         tweak(self,"start","end","str")
 
+        self.theta=0
+
     def tick(self):
         line(self.start,self.end)
-        circle(V2(0,0),10)
+
+        s=max(math.sin(self.theta),0)
+        for i in range(10):
+            circle(V2(0,0),i*100+s*50)
+
+        self.theta+=math.pi/8
+        
 
 run(Test())

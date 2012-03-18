@@ -42,5 +42,27 @@ namespace PyDoodle
             else
                 return Color.FromArgb(255, v, p, q);
         }
+
+        public static Color TransformedColour(Color colour, double dh, double ds, double dv)
+        {
+            double h, s, v;
+            ColorToHSV(colour, out h, out s, out v);
+
+            h += dh;
+
+            s += ds;
+            if (s < 0)
+                s = 0;
+            else if (s > 1)
+                s = 1;
+
+            v += dv;
+            if (v < 0)
+                v = 0;
+            else if (v > 1)
+                v = 1;
+
+            return ColorFromHSV(h, s, v);
+        }
     }
 }

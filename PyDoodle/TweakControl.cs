@@ -23,6 +23,10 @@ namespace PyDoodle
             }
         }
 
+        public delegate void OnTweak(object sender, EventArgs ea);
+
+        public OnTweak Tweak;
+
         public delegate TweakControl TweakControlCreator();
 
         public static TweakControl CreateTweakControl<T>() where T : TweakControl, new()

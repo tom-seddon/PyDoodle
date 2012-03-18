@@ -11,22 +11,6 @@ namespace PyDoodle
 {
     public partial class TweakStringControl : TweakControl
     {
-        public class EventArgs :
-            System.EventArgs
-        {
-            private string _text;
-
-            internal EventArgs(string text)
-            {
-                _text = text;
-            }
-
-            public string Text
-            {
-                get { return _text; }
-            }
-        }
-
         public TweakStringControl()
         {
             InitializeComponent();

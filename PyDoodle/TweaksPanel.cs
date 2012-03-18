@@ -75,8 +75,8 @@ namespace PyDoodle
             double h, s, v;
             Misc.ColorToHSV(Control.DefaultBackColor, out h, out s, out v);
 
-            // "v-0.01" is highly unscientific
-            Color[] colours = { Control.DefaultBackColor, Misc.ColorFromHSV(h, s, Math.Max(v - 0.01, 0.0)) };
+            // "v-0.1" is highly unscientific
+            Color[] colours = { Control.DefaultBackColor, Misc.ColorFromHSV(h, s, Math.Max(v - 0.1, 0.0)) };
             int colourIdx = 0;
 
             foreach (Tweakable t in _tweakables)
@@ -103,6 +103,9 @@ namespace PyDoodle
                     t.TweakControl.Left = 0;
                     t.TweakControl.Width = t.TweakControl.Parent.Width;
                     t.TweakControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+
+                    t.TweakControl.Tweak += this.HandleTweak;
+                    t.TweakControl.Tag = t;
                 }
 
                 t.y = y;
@@ -128,6 +131,14 @@ namespace PyDoodle
 
             // set split position
             _splitContainer.SplitterDistance = labelsW + 10;
+        }
+
+        private void HandleTweak(object sender, TweakControl.EventArgs ea)
+        {
+            TweakControl tweakControl = sender as TweakControl;
+            Tweakable t = tweakControl.Tag as Tweakable;
+
+            _operations.SetMember(t.Pyobj, t.Attr, ea.Value);
         }
     }
 }

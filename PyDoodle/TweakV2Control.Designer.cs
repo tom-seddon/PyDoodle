@@ -60,7 +60,6 @@
             this._xTextBox.Name = "_xTextBox";
             this._xTextBox.Size = new System.Drawing.Size(124, 20);
             this._xTextBox.TabIndex = 2;
-            this._xTextBox.TextChanged += new System.EventHandler(this._xTextBox_TextChanged);
             // 
             // _yTextBox
             // 
@@ -70,7 +69,6 @@
             this._yTextBox.Name = "_yTextBox";
             this._yTextBox.Size = new System.Drawing.Size(124, 20);
             this._yTextBox.TabIndex = 3;
-            this._yTextBox.TextChanged += new System.EventHandler(this._yTextBox_TextChanged);
             // 
             // TweakV2Control
             // 

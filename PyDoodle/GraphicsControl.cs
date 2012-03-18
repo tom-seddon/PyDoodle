@@ -193,10 +193,14 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public void ResetTransform()
+        public Matrix Transform
         {
-            _matrix = new Matrix(1f, 0f, 0f, 1f, this.Width * .5f, this.Height * .5f);
-            this.Invalidate();
+            get { return _matrix; }
+            set
+            {
+                _matrix = value.Clone();
+                this.Invalidate();
+            }
         }
 
         //-///////////////////////////////////////////////////////////////////////

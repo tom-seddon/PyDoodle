@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this._splitContainer = new System.Windows.Forms.SplitContainer();
-            this._rightPanel = new System.Windows.Forms.Panel();
             this._leftPanel = new System.Windows.Forms.Panel();
+            this._rightPanel = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this._splitContainer)).BeginInit();
             this._splitContainer.Panel1.SuspendLayout();
             this._splitContainer.Panel2.SuspendLayout();
@@ -54,6 +54,14 @@
             this._splitContainer.SplitterDistance = 94;
             this._splitContainer.TabIndex = 0;
             // 
+            // _leftPanel
+            // 
+            this._leftPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._leftPanel.Location = new System.Drawing.Point(0, 0);
+            this._leftPanel.Name = "_leftPanel";
+            this._leftPanel.Size = new System.Drawing.Size(94, 262);
+            this._leftPanel.TabIndex = 0;
+            // 
             // _rightPanel
             // 
             this._rightPanel.BackColor = System.Drawing.SystemColors.Control;
@@ -63,20 +71,14 @@
             this._rightPanel.Size = new System.Drawing.Size(186, 262);
             this._rightPanel.TabIndex = 0;
             // 
-            // _leftPanel
-            // 
-            this._leftPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._leftPanel.Location = new System.Drawing.Point(0, 0);
-            this._leftPanel.Name = "_leftPanel";
-            this._leftPanel.Size = new System.Drawing.Size(94, 262);
-            this._leftPanel.TabIndex = 0;
-            // 
             // TweaksPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(284, 262);
+            this.CloseButton = false;
+            this.CloseButtonVisible = false;
             this.Controls.Add(this._splitContainer);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "TweaksPanel";

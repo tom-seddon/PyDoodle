@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.IO;
+using System.Windows.Forms;
 using Microsoft.Scripting.Hosting;
 using IronPython.Runtime;
 using IronPython.Hosting;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace PyDoodle
 {
@@ -144,6 +147,92 @@ namespace PyDoodle
             }
 
             return moduleFileNames;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private static void SetTextBoxesColour(TextBox[] textBoxes, Color colour)
+        {
+            foreach (TextBox t in textBoxes)
+            {
+                if (t != null)
+                    t.BackColor = colour;
+            }
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static void SetCleanColour(params TextBox[] textBoxes)
+        {
+            SetTextBoxesColour(textBoxes, System.Drawing.SystemColors.Window);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static void SetDirtyColour(params TextBox[] textBoxes)
+        {
+            SetTextBoxesColour(textBoxes, Control.DefaultBackColor);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static void SetBadColour(params TextBox[] textBoxes)
+        {
+            double h, s, v;
+            Misc.ColorToHSV(TextBox.DefaultBackColor, out h, out s, out v);
+
+            h = 0;//red
+            s = 0.25;
+
+            SetTextBoxesColour(textBoxes, Misc.ColorFromHSV(h, s, v));
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static readonly Encoding defaultXmlEncoding = new UTF8Encoding(false);//false=no BOM
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static T LoadXml<T>(string fileName) where T : class
+        {
+            using (XmlReader reader = XmlReader.Create(fileName))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(T));
+                return serializer.Deserialize(reader) as T;
+            }
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static void SaveXml<T>(string fileName, T data)
+        {
+            XmlWriterSettings settings = new XmlWriterSettings();
+
+            settings.Encoding = defaultXmlEncoding;
+            settings.Indent = true;
+
+            using (XmlWriter writer = XmlWriter.Create(fileName, settings))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(T));
+                serializer.Serialize(writer, data);
+            }
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static void Dispose(object o)
+        {
+            IDisposable disposable = o as IDisposable;
+            if (disposable != null)
+                disposable.Dispose();
         }
 
         //-///////////////////////////////////////////////////////////////////////

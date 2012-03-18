@@ -9,26 +9,31 @@ using System.Windows.Forms;
 
 namespace PyDoodle
 {
-    public partial class TweakStringControl : TweakControl
+    public partial class TweakFloatControl : TweakControl
     {
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public TweakStringControl()
+        bool _isFloat;
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public TweakFloatControl()
         {
             InitializeComponent();
 
-            _textBox.TextChanged += HandleTextBoxDirty;
+            _isFloat = false;
 
-            EnterPressed += HandleScriptValueDirty;
-        }
+            FloatMouseDragHandler fmdh = new FloatMouseDragHandler(.1f);
 
-        //-///////////////////////////////////////////////////////////////////////
-        //-///////////////////////////////////////////////////////////////////////
+            fmdh.TextBoxChanged += this.HandleScriptValueDirty;
 
-        private void HandleTextBoxDirty(object sender, System.EventArgs e)
-        {
-            Misc.SetDirtyColour(_textBox);
+            _textBox.MouseMove += fmdh.HandleMouseMove;
+
+            _textBox.TextChanged += this.HandleTextBoxTextChanged;
+
+            EnterPressed += this.HandleScriptValueDirty;
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -36,9 +41,23 @@ namespace PyDoodle
 
         private void HandleScriptValueDirty(object sender, System.EventArgs e)
         {
-            OnTweak(new EventArgs(_textBox.Text));
+            double value;
+            if (double.TryParse(_textBox.Text, out value))
+            {
+                OnTweak(new EventArgs(_isFloat ? (float)value : value));
 
-            Misc.SetCleanColour(_textBox);
+                Misc.SetCleanColour(_textBox);
+            }
+            else
+                Misc.SetBadColour(_textBox);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void HandleTextBoxTextChanged(object sender, System.EventArgs e)
+        {
+            Misc.SetDirtyColour(_textBox);
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -46,9 +65,11 @@ namespace PyDoodle
 
         public override void SetValue(dynamic newValue)
         {
-            if (newValue is string)
+            if (newValue is float || newValue is double)
             {
-                _textBox.Text = (string)newValue;
+                _isFloat = newValue is float;
+
+                _textBox.Text = newValue.ToString();
 
                 Misc.SetCleanColour(_textBox);
             }

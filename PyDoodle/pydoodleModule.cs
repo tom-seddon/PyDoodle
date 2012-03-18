@@ -152,37 +152,64 @@ namespace PyDoodle
         }
 
         public delegate void tweak_type(CodeContext context, object pyobj, params string[] attrs);
-        public void tweak(CodeContext context, object pyobj, params string[] attrs)
+        public void tweak(CodeContext context, object pyobj, params object[] attrs)
         {
             for (int i = 0; i < attrs.Length; ++i)
             {
-                dynamic attr = _operations.GetMember(pyobj, attrs[i]);
+                int argIdx = 1 + i;
+                string attrName = null;
+                PythonDictionary attrDict = null;
 
-                // Check...
-                if (attr is string)
+                // Pull out 
+                if (attrs[i] is string)
+                    attrName = (string)attrs[i];
+                else if (attrs[i] is PythonTuple)
                 {
-                    _mainForm.TweaksPanel.AddTweak(pyobj, attrs[i], TweakControl.CreateTweakControl<TweakStringControl>);
-                }
-                else if (attr is V2)
-                {
-                    _mainForm.TweaksPanel.AddTweak(pyobj, attrs[i], TweakControl.CreateTweakControl<TweakV2Control>);
+                    PythonTuple tuple = (PythonTuple)attrs[i];
+
+                    switch (tuple.Count)
+                    {
+                    default:
+                        throw new ArgumentException("Argument {0} - must be (str,) or (str,dict).");
+
+                    case 1:
+                        {
+                            if (!(tuple[0] is string))
+                                goto default;
+
+                            attrName = (string)tuple[0];
+                        }
+                        break;
+
+                    case 2:
+                        {
+                            if (!(tuple[1] is PythonDictionary))
+                                goto default;
+
+                            attrDict = (PythonDictionary)tuple[1];
+                        }
+                        goto case 1;
+                    }
                 }
                 else
-                {
-                    Console.WriteLine("    unhandled type {0} (attr {1}, obj {2})", attr.GetType(), attrs[i], pyobj);
-                }
+                    throw new ArgumentException(string.Format("Argument {0} - unsupported type, {1}.", argIdx, attrs[i].GetType()));
+
+                TweakControl.Creator creator = null;
+
+                dynamic attrValue = _operations.GetMember(pyobj, attrName);
+
+                // Check...
+                if (attrValue is string)
+                    creator = TweakControl.CreateTweakControl<TweakStringControl>;
+                else if (attrValue is V2)
+                    creator = TweakControl.CreateTweakControl<TweakV2Control>;
+                else if (attrValue is float || attrValue is double)
+                    creator = TweakControl.CreateTweakControl<TweakFloatControl>;
+                else
+                    throw new ArgumentException(string.Format("Attribute {0} - unsupported type, {1}.", attrName, attrName.GetType()));
+
+                _mainForm.TweaksPanel.AddTweak(pyobj, attrName, creator);
             }
-//             Console.WriteLine("tweak: pyobj={0}", pyobj);
-//             for (int i = 0; i < attrs.Length; ++i)
-//             {
-//                 Console.WriteLine("    attrs[{0}]=\"{1}\"", i, attrs[i]);
-// 
-//                 dynamic attr = _operations.GetMember(pyobj, attrs[i]);
-//                 Console.WriteLine("        type: {0}", attr.GetType());
-// 
-//                 if (attr is V2)
-//                     Console.WriteLine("        (it's a V2)");
-//             }
         }
 
         private void run(object runPyobj)

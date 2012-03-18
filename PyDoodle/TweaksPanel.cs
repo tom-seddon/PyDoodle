@@ -26,6 +26,15 @@ namespace PyDoodle
 
         public void Reset(ScriptEngine se)
         {
+            if (_tweakables != null)
+            {
+                foreach (Tweakable t in _tweakables)
+                {
+                    t.TweakControl.Dispose();
+                    t.label.Dispose();
+                }
+            }
+
             _tweakables=new List<Tweakable>();
 
             _operations=se.CreateOperations();
@@ -37,12 +46,12 @@ namespace PyDoodle
         {
             public object Pyobj = null;
             public string Attr = null;
-            public TweakControl.TweakControlCreator Creator = null;
+            public TweakControl.Creator Creator = null;
             public TweakControl TweakControl = null;
             public Label label = null;
         }
 
-        public void AddTweak(object pyobj, string attr, TweakControl.TweakControlCreator creator)
+        public void AddTweak(object pyobj, string attr, TweakControl.Creator creator)
         {
             // don't add if it's already there.
             foreach (Tweakable ot in _tweakables)
@@ -110,6 +119,7 @@ namespace PyDoodle
                 t.label.Top = y;
                 t.label.Height = t.TweakControl.Height;
                 t.label.BackColor = colours[colourIdx];
+                t.label.TextAlign = ContentAlignment.MiddleLeft;
 
                 t.TweakControl.Top = y;
                 t.TweakControl.BackColor = colours[colourIdx];

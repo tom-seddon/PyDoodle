@@ -47,6 +47,7 @@
     <Reference Include="Microsoft.Scripting, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -58,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FileChangeWatcher.cs" />
+    <Compile Include="FloatMouseDragHandler.cs" />
     <Compile Include="GraphicsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -84,6 +86,12 @@
     <Compile Include="TweakControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="TweakFloatControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TweakFloatControl.Designer.cs">
+      <DependentUpon>TweakFloatControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="TweakStringControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -109,6 +117,7 @@
       <DependentUpon>TweakV2Control.cs</DependentUpon>
     </Compile>
     <Compile Include="V2.cs" />
+    <Compile Include="WindowPlacement.cs" />
     <EmbeddedResource Include="GraphicsControl.resx">
       <DependentUpon>GraphicsControl.cs</DependentUpon>
     </EmbeddedResource>
@@ -128,6 +137,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="TweakFloatControl.resx">
+      <DependentUpon>TweakFloatControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TweakStringControl.resx">
       <DependentUpon>TweakStringControl.cs</DependentUpon>
     </EmbeddedResource>

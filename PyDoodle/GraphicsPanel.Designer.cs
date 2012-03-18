@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Drawing.Drawing2D.Matrix matrix1 = new System.Drawing.Drawing2D.Matrix();
             this._showGridCheckBox = new System.Windows.Forms.CheckBox();
             this._resetButton = new System.Windows.Forms.Button();
             this._graphicsControl = new PyDoodle.GraphicsControl();
@@ -67,12 +68,15 @@
             this._graphicsControl.ShowGrid = true;
             this._graphicsControl.Size = new System.Drawing.Size(284, 227);
             this._graphicsControl.TabIndex = 0;
+            this._graphicsControl.Transform = matrix1;
             // 
             // GraphicsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 262);
+            this.CloseButton = false;
+            this.CloseButtonVisible = false;
             this.Controls.Add(this._resetButton);
             this.Controls.Add(this._showGridCheckBox);
             this.Controls.Add(this._graphicsControl);

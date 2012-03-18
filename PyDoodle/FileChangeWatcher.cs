@@ -91,6 +91,12 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
+        /// <summary>
+        /// Initialise new FileChangeWatcher that will watch the given files.
+        /// </summary>
+        /// <param name="fileNames">
+        /// names of files to watch. Each file will be watched only the once, no
+        /// matter how many times it might be mentioned.</param>
         public FileChangeWatcher(ICollection<string> fileNames)
         {
             var dirWatchersByDirName = new Dictionary<string, DirWatcher>();

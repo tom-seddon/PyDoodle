@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
+using System.Drawing.Drawing2D;
 
 namespace PyDoodle
 {
@@ -18,7 +19,7 @@ namespace PyDoodle
 
             _showGridCheckBox.Checked = _graphicsControl.ShowGrid;
 
-            _graphicsControl.ResetTransform();
+            ResetGraphicsTransform();
         }
 
         public GraphicsControl GraphicsControl
@@ -33,7 +34,18 @@ namespace PyDoodle
 
         private void _resetButton_Click(object sender, EventArgs e)
         {
-            _graphicsControl.ResetTransform();
+            ResetGraphicsTransform();
+        }
+
+        private void ResetGraphicsTransform()
+        {
+            GraphicsTransform = new Matrix(1f, 0f, 0f, 1f, this.Width * .5f, this.Height * .5f);
+        }
+
+        public Matrix GraphicsTransform
+        {
+            get { return _graphicsControl.Transform.Clone(); }
+            set { _graphicsControl.Transform = value; }
         }
     }
 }

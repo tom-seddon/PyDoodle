@@ -9,23 +9,33 @@ using System.Windows.Forms;
 
 namespace PyDoodle
 {
+    //-///////////////////////////////////////////////////////////////////////
+    //-///////////////////////////////////////////////////////////////////////
+
     public partial class TweakV2Control : TweakControl
     {
-        private Color _defaultBackColour;
-        private Color _errorBackColour;
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
         public TweakV2Control()
         {
             InitializeComponent();
 
-            _defaultBackColour = _xTextBox.BackColor;
+            _xTextBox.TextChanged += HandleTextBoxTextChanged;
+            _yTextBox.TextChanged += HandleTextBoxTextChanged;
 
-            double h, s, v;
-            Misc.ColorToHSV(_defaultBackColour, out h, out s, out v);
-            h = 0;//red
-            s = 0.25;
-            _errorBackColour = Misc.ColorFromHSV(h, s, v);
+            FloatMouseDragHandler fmdh = new FloatMouseDragHandler(.1f);
+            fmdh.TextBoxChanged += HandleScriptValueDirty;
+
+            _xTextBox.MouseMove += fmdh.HandleMouseMove;
+            _yTextBox.MouseMove += fmdh.HandleMouseMove;
+
+            EnterPressed += HandleScriptValueDirty;
+
         }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
         public override void SetValue(dynamic newValue)
         {
@@ -36,55 +46,42 @@ namespace PyDoodle
                 _xTextBox.Text = v2.x.ToString();
                 _yTextBox.Text = v2.y.ToString();
 
-                _xTextBox.BackColor = _defaultBackColour;
-                _yTextBox.BackColor = _defaultBackColour;
+                Misc.SetCleanColour(_xTextBox, _yTextBox);
             }
         }
 
-        private void _xTextBox_TextChanged(object sender, System.EventArgs e)
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void HandleTextBoxTextChanged(object sender, System.EventArgs e)
         {
-            _xTextBox.BackColor = Control.DefaultBackColor;
+            Misc.SetDirtyColour((TextBox)sender);
         }
 
-        private void _yTextBox_TextChanged(object sender, System.EventArgs e)
-        {
-            _yTextBox.BackColor = Control.DefaultBackColor;
-        }
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
-        // http://www.codeproject.com/Articles/36648/Default-Button-on-a-User-Control
-        protected override bool ProcessKeyPreview(ref Message m)
+        private void HandleScriptValueDirty(object sender, System.EventArgs e)
         {
-            if (m.Msg == 0x100)//WM_KEYDOWN
+            double x, y;
+
+            bool goodX = double.TryParse(_xTextBox.Text, out x);
+            bool goodY = double.TryParse(_yTextBox.Text, out y);
+
+            if (goodX && goodY)
             {
-                if (m.WParam.ToInt32() == (int)ConsoleKey.Enter)
-                {
-                    if (this.Tweak != null)
-                    {
-                        double x, y;
+                OnTweak(new EventArgs(new V2(x, y)));
 
-                        bool goodX = double.TryParse(_xTextBox.Text, out x);
-                        bool goodY = double.TryParse(_yTextBox.Text, out y);
-
-                        if (goodX && goodY)
-                        {
-                            this.Tweak(this, new EventArgs(new V2(x, y)));
-
-                            _xTextBox.BackColor = _defaultBackColour;
-                            _yTextBox.BackColor = _defaultBackColour;
-                        }
-                        else
-                        {
-                            if (!goodX)
-                                _xTextBox.BackColor = _errorBackColour;
-
-                            if (!goodY)
-                                _yTextBox.BackColor = _errorBackColour;
-                        }
-                    }
-                }
+                Misc.SetCleanColour(_xTextBox, _yTextBox);
             }
-
-            return base.ProcessKeyPreview(ref m);
+            else
+                Misc.SetBadColour(goodX ? null : _xTextBox, goodY ? null : _yTextBox);
         }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
     }
+
+    //-///////////////////////////////////////////////////////////////////////
+    //-///////////////////////////////////////////////////////////////////////
 }

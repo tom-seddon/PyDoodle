@@ -1,13 +1,13 @@
 ﻿namespace PyDoodle
 {
-    partial class TextPanel
+    partial class TweakFloatControl
     {
-        /// <summary>
+        /// <summary> 
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
+        /// <summary> 
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
@@ -20,10 +20,10 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
+        #region Component Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
+        /// <summary> 
+        /// Required method for Designer support - do not modify 
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
@@ -33,26 +33,18 @@
             // 
             // _textBox
             // 
-            this._textBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._textBox.Location = new System.Drawing.Point(0, 0);
-            this._textBox.Multiline = true;
+            this._textBox.Location = new System.Drawing.Point(3, 3);
             this._textBox.Name = "_textBox";
-            this._textBox.ReadOnly = true;
-            this._textBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this._textBox.Size = new System.Drawing.Size(284, 262);
+            this._textBox.Size = new System.Drawing.Size(144, 20);
             this._textBox.TabIndex = 0;
             // 
-            // TextPanel
+            // TweakFloatControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 262);
-            this.CloseButton = false;
-            this.CloseButtonVisible = false;
             this.Controls.Add(this._textBox);
-            this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Name = "TextPanel";
-            this.Text = "Text";
+            this.Name = "TweakFloatControl";
+            this.Size = new System.Drawing.Size(150, 27);
             this.ResumeLayout(false);
             this.PerformLayout();
 

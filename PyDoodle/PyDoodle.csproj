@@ -69,6 +69,7 @@
     <Compile Include="GraphicsPanel.Designer.cs">
       <DependentUpon>GraphicsPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Misc.cs" />
     <Compile Include="pydoodleModule.cs" />
     <Compile Include="NetReceiver.cs" />
     <Compile Include="MainForm.cs">
@@ -79,11 +80,32 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TweakControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TweakStringControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TweakStringControl.Designer.cs">
+      <DependentUpon>TweakStringControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="TextPanel.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="TextPanel.Designer.cs">
       <DependentUpon>TextPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TweaksPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TweaksPanel.Designer.cs">
+      <DependentUpon>TweaksPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TweakV2Control.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TweakV2Control.Designer.cs">
+      <DependentUpon>TweakV2Control.cs</DependentUpon>
     </Compile>
     <Compile Include="V2.cs" />
     <EmbeddedResource Include="GraphicsControl.resx">
@@ -105,8 +127,17 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="TweakStringControl.resx">
+      <DependentUpon>TweakStringControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TextPanel.resx">
       <DependentUpon>TextPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TweaksPanel.resx">
+      <DependentUpon>TweaksPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TweakV2Control.resx">
+      <DependentUpon>TweakV2Control.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
     <None Include="Properties\Settings.settings">

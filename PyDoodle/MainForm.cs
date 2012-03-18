@@ -19,6 +19,7 @@ namespace PyDoodle
     {
         private GraphicsPanel _graphicsPanel;
         private TextPanel _textPanel;
+        private TweaksPanel _tweaksPanel;
 
         private readonly ScriptEngine _scriptEngine;
         private ObjectOperations _objectOperations;
@@ -32,6 +33,12 @@ namespace PyDoodle
             set { _runPyobj = value; }
         }
 
+        // bleargh
+        public TweaksPanel TweaksPanel
+        {
+            get { return _tweaksPanel; }
+        }
+
         public MainForm(ScriptEngine scriptEngine)
         {
             InitializeComponent();
@@ -42,6 +49,9 @@ namespace PyDoodle
 
             _textPanel = new TextPanel();
             _textPanel.Show(_dockPanel, DockState.Document);
+
+            _tweaksPanel = new TweaksPanel(scriptEngine);
+            _tweaksPanel.Show(_dockPanel, DockState.Document);
 
             _graphicsPanel.Show(_dockPanel);
 

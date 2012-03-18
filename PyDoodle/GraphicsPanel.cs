@@ -15,11 +15,18 @@ namespace PyDoodle
         public GraphicsPanel()
         {
             InitializeComponent();
+
+            _showGridCheckBox.Checked = _graphicsControl.ShowGrid;
         }
 
         public GraphicsControl GraphicsControl
         {
             get { return _graphicsControl; }
+        }
+
+        private void _showGridCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            _graphicsControl.ShowGrid = _showGridCheckBox.Checked;
         }
     }
 }

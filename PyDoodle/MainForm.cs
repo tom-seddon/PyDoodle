@@ -38,10 +38,12 @@ namespace PyDoodle
 
             _graphicsPanel = new GraphicsPanel();
             _graphicsPanel.Show(_dockPanel, DockState.Document);
-            _graphicsPanel.GraphicsControl.Paint += this.OnGraphicsPanelPaint;
+            _graphicsPanel.GraphicsControl.DelegatedPaint += this.OnGraphicsPanelPaint;
 
             _textPanel = new TextPanel();
             _textPanel.Show(_dockPanel, DockState.Document);
+
+            _graphicsPanel.Show(_dockPanel);
 
             _scriptEngine = scriptEngine;
             _objectOperations = _scriptEngine.CreateOperations();
@@ -51,6 +53,8 @@ namespace PyDoodle
             _scriptScope = null;
 
             ResetScriptStuff();
+
+            RunScript(@"C:\tom\PyDoodle\test.py");
         }
 
         public void OnGraphicsPanelPaint(object sender, PaintEventArgs e)
@@ -78,7 +82,12 @@ namespace PyDoodle
             if (result != DialogResult.OK)
                 return;
 
-            _scriptScope = _scriptEngine.ExecuteFile(ofd.FileName);
+            RunScript(ofd.FileName);
+        }
+
+        public void RunScript(string fileName)
+        {
+            _scriptScope = _scriptEngine.ExecuteFile(fileName);
 
             string[] modules = Python.GetModuleFilenames(_scriptEngine);
             foreach (string module in modules)

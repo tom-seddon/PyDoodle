@@ -21,7 +21,8 @@ namespace PyDoodle
         private TextPanel _textPanel;
         private TweaksPanel _tweaksPanel;
 
-        private readonly ScriptEngine _scriptEngine;
+        private ScriptEngine _scriptEngine;
+        private List<string> _scriptEngineDefaultSearchPaths;
         private ObjectOperations _objectOperations;
         private object _runPyobj;
         private pydoodleModule _pydoodleModule;
@@ -39,9 +40,18 @@ namespace PyDoodle
             get { return _tweaksPanel; }
         }
 
-        public MainForm(ScriptEngine scriptEngine)
+        public MainForm()
         {
             InitializeComponent();
+
+            Dictionary<string, object> options = new Dictionary<string, object>();
+
+            options["Debug"] = true;
+
+            _scriptEngine = Python.CreateEngine(options);
+            _scriptEngineDefaultSearchPaths = new List<string>(_scriptEngine.GetSearchPaths());
+
+            _objectOperations = _scriptEngine.CreateOperations();
 
             _graphicsPanel = new GraphicsPanel();
             _graphicsPanel.Show(_dockPanel, DockState.Document);
@@ -50,13 +60,10 @@ namespace PyDoodle
             _textPanel = new TextPanel();
             _textPanel.Show(_dockPanel, DockState.Document);
 
-            _tweaksPanel = new TweaksPanel(scriptEngine);
+            _tweaksPanel = new TweaksPanel(_scriptEngine);
             _tweaksPanel.Show(_dockPanel, DockState.Document);
 
             _graphicsPanel.Show(_dockPanel);
-
-            _scriptEngine = scriptEngine;
-            _objectOperations = _scriptEngine.CreateOperations();
 
             _pydoodleModule = new pydoodleModule(_scriptEngine, this);
 
@@ -97,11 +104,52 @@ namespace PyDoodle
 
         public void RunScript(string fileName)
         {
+            string filePath = Misc.TryGetDirectoryName(fileName);
+            if (filePath != null)
+            {
+                // Replace "." in the search paths with the path to the file.
+                List<string> paths = new List<string>(_scriptEngineDefaultSearchPaths);
+
+                paths.Remove(".");
+                paths.Insert(0, filePath);
+
+                _scriptEngine.SetSearchPaths(paths);
+            }
+
+            foreach (string path in _scriptEngine.GetSearchPaths())
+                Console.WriteLine("Search Path: {0}", path);
+
             _scriptScope = _scriptEngine.ExecuteFile(fileName);
 
-            string[] modules = Python.GetModuleFilenames(_scriptEngine);
-            foreach (string module in modules)
+            foreach (string module in GetModuleFileNames(_scriptEngine))
                 Console.WriteLine("Module: {0}", module);
+        }
+
+        private static List<string> GetModuleFileNames(ScriptEngine se)
+        {
+            List<string> moduleFileNames = new List<string>();
+
+            PythonDictionary modules = se.GetSysModule().GetVariable("modules") as PythonDictionary;
+            if (modules != null)
+            {
+                foreach (KeyValuePair<object, object> kvp in modules)
+                {
+                    PythonModule module = kvp.Value as PythonModule;
+
+                    if (module != null)
+                    {
+                        object fileNameObj;
+                        if (module.Get__dict__().TryGetValue("__file__", out fileNameObj))
+                        {
+                            string fileName = fileNameObj as string;
+                            if (fileName != null && fileName.Length > 0)
+                                moduleFileNames.Add((string)fileName);
+                        }
+                    }
+                }
+            }
+
+            return moduleFileNames;
         }
 
         private void ResetScriptStuff()

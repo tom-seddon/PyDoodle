@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.IO;
 
 namespace PyDoodle
 {
@@ -63,6 +64,22 @@ namespace PyDoodle
                 v = 1;
 
             return ColorFromHSV(h, s, v);
+        }
+
+        public static string TryGetDirectoryName(string file)
+        {
+            if (file == "")
+                return null;
+
+            try
+            {
+                return Path.GetDirectoryName(file);
+            }
+            catch (ArgumentException)
+            {
+            }
+
+            return null;
         }
     }
 }

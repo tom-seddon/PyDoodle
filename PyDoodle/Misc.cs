@@ -18,6 +18,20 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
+        public static bool AreFileNamesEqual(string fileNameA, string fileNameB)
+        {
+            string a = fileNameA.Replace('/', '\\').ToLower();
+            string b = fileNameB.Replace('/', '\\').ToLower();
+
+            if (a != b)
+                return false;
+
+            return true;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public static void ColorToHSV(Color color, out double hue, out double saturation, out double value)
         {
             int max = Math.Max(color.R, Math.Max(color.G, color.B));
@@ -206,6 +220,25 @@ namespace PyDoodle
                 XmlSerializer serializer = new XmlSerializer(typeof(T));
                 return serializer.Deserialize(reader) as T;
             }
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static T LoadXmlOrCreateDefault<T>(string fileName) where T : class,new()
+        {
+            try
+            {
+                return LoadXml<T>(fileName);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            catch (FileNotFoundException)
+            {
+            }
+
+            return new T();
         }
 
         //-///////////////////////////////////////////////////////////////////////

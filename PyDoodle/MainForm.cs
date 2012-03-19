@@ -36,6 +36,8 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
+        private Main _main;
+
         private GraphicsPanel _graphicsPanel;
         private TextPanel _textPanel;
         private TweaksPanel _tweaksPanel;
@@ -136,9 +138,13 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public MainForm()
+        public MainForm(Main main)
         {
             InitializeComponent();
+
+            _main = main;
+            _main.RecentFileListChanged += this.HandleRebuildRecentFilesList;
+            HandleRebuildRecentFilesList(null, null);
 
             _graphicsPanel = null;
             _textPanel = null;
@@ -152,6 +158,46 @@ namespace PyDoodle
 
             LoadStateForScript(@"C:\tom\pydoodle\test.py");
             RunScript(@"C:\tom\pydoodle\test.py");
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void HandleRebuildRecentFilesList(object sender, EventArgs ea)
+        {
+            int preIdx = _fileMenu.DropDownItems.IndexOf(_preMRUSeparator);
+
+            while (!object.ReferenceEquals(_fileMenu.DropDownItems[preIdx + 1], _postMRUSeparator))
+                _fileMenu.DropDownItems.RemoveAt(preIdx + 1);
+
+            int insertIdx = preIdx + 1;
+
+            foreach (string recentFile in _main.RecentFileList)
+            {
+                ToolStripMenuItem tsmi = new ToolStripMenuItem();
+
+                tsmi.Text = recentFile;
+                tsmi.Tag = recentFile;
+                tsmi.Click += HandleRecentFileClick;
+
+                _fileMenu.DropDownItems.Insert(insertIdx++, tsmi);
+            }
+
+            _postMRUSeparator.Visible = insertIdx > preIdx + 1;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void HandleRecentFileClick(object sender, EventArgs e)
+        {
+            ToolStripMenuItem tsmi = sender as ToolStripMenuItem;
+            if (tsmi != null)
+            {
+                string fileName = tsmi.Tag as string;
+                if (fileName != null)
+                    RunScript(fileName);
+            }
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -278,6 +324,8 @@ namespace PyDoodle
 
         public void RunScript(string fileName)
         {
+            SaveStateForScript();
+
             StopScript();
 
             // Initialise basic script stuff.
@@ -306,8 +354,8 @@ namespace PyDoodle
                 _scriptEngine.SetSearchPaths(paths);
             }
 
-            foreach (string path in _scriptEngine.GetSearchPaths())
-                Console.WriteLine("Search Path: {0}", path);
+            //
+            _main.OnRecentFileUsed(fileName);
 
             // go!
             _scriptFileName = fileName;
@@ -426,9 +474,7 @@ namespace PyDoodle
 
         private void LoadStateForScript(string scriptFileName)
         {
-            Config config = Misc.LoadXml<Config>(GetConfigFileName(scriptFileName));
-            if (config == null)
-                config = new Config();
+            Config config = Misc.LoadXmlOrCreateDefault<Config>(GetConfigFileName(scriptFileName));
 
             // Set main form placement
             if (config.windowPlacement != null)

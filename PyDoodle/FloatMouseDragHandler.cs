@@ -10,8 +10,9 @@ namespace PyDoodle
     class FloatMouseDragHandler
     {
         private float _scale;
-        private bool _isDragging = false;
         private Point _lastLocation;
+        private TextBox _dragTextBox;
+        private Cursor _oldDragTextBoxCursor;
 
         public float Scale
         {
@@ -24,37 +25,51 @@ namespace PyDoodle
         public FloatMouseDragHandler(float scale)
         {
             _scale = scale;
+
+            _dragTextBox = null;
+            _oldDragTextBoxCursor = null;
         }
 
         public void HandleMouseMove(object sender, MouseEventArgs e)
         {
             if ((e.Button & MouseButtons.Middle) != 0)
             {
-                if (!_isDragging)
+                if (_dragTextBox == null)
                 {
-                    _isDragging = true;
+                    _dragTextBox = sender as TextBox;
                     _lastLocation = e.Location;
-                }
 
-                TextBox textBox = sender as TextBox;
-                if (textBox != null)
-                {
-                    double value;
-                    if (double.TryParse(textBox.Text, out value))
+                    if (_dragTextBox != null)
                     {
-                        value += (e.Location.X - _lastLocation.X) * Scale;
-
-                        textBox.Text = string.Format("{0:N4}", value);
-
-                        OnTextBoxChanged(textBox);
+                        _oldDragTextBoxCursor = _dragTextBox.Cursor;
+                        _dragTextBox.Cursor = Cursors.VSplit;
                     }
                 }
 
-                if (_isDragging)
-                    _lastLocation = e.Location;
+                if (_dragTextBox != null)
+                {
+                    double value;
+                    if (double.TryParse(_dragTextBox.Text, out value))
+                    {
+                        value += (e.Location.X - _lastLocation.X) * Scale;
+
+                        _dragTextBox.Text = string.Format("{0:N4}", value);
+
+                        OnTextBoxChanged(_dragTextBox);
+                    }
+                }
+
+                _lastLocation = e.Location;
             }
             else
-                _isDragging = false;
+            {
+                if (_dragTextBox != null)
+                {
+                    _dragTextBox.Cursor = _oldDragTextBoxCursor;
+
+                    _dragTextBox = null;
+                }
+            }
         }
 
         protected void OnTextBoxChanged(object sender)

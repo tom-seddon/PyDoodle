@@ -18,6 +18,7 @@ namespace PyDoodle
             InitializeComponent();
 
             _showGridCheckBox.Checked = _graphicsControl.ShowGrid;
+            _yIsUp.Checked = _graphicsControl.YIsUp;
 
             ResetGraphicsTransform();
         }
@@ -46,6 +47,23 @@ namespace PyDoodle
         {
             get { return _graphicsControl.Transform.Clone(); }
             set { _graphicsControl.Transform = value; }
+        }
+
+        public bool GraphicsShowGrid
+        {
+            get { return _showGridCheckBox.Checked; }
+            set { _showGridCheckBox.Checked = value; }
+        }
+
+        public bool GraphicsYIsUp
+        {
+            get { return _yIsUp.Checked; }
+            set { _yIsUp.Checked = value; }
+        }
+
+        private void _yIsUp_CheckedChanged(object sender, EventArgs e)
+        {
+            _graphicsControl.YIsUp = _yIsUp.Checked;
         }
     }
 }

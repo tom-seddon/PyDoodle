@@ -10,6 +10,8 @@ namespace PyDoodle
         public class State
         {
             public List<String> RecentFiles = new List<string>();
+
+            public string LastFile = null;
         }
 
         private State _state;
@@ -21,6 +23,11 @@ namespace PyDoodle
         public IEnumerable<string> RecentFileList
         {
             get { return _state.RecentFiles; }
+        }
+
+        public string LastFile
+        {
+            get { return _state.LastFile; }
         }
 
         public Main()
@@ -52,6 +59,8 @@ namespace PyDoodle
 
             while (_state.RecentFiles.Count > 10)
                 _state.RecentFiles.RemoveAt(_state.RecentFiles.Count - 1);
+
+            _state.LastFile = fileName;
 
             OnRecentFileListChanged();
         }

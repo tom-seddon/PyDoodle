@@ -26,11 +26,14 @@ namespace PyDoodle
 
         public class Config
         {
-            // Transform matrix for the graphics panel.
-            public float[] graphicsTransformElements = null;
+            // Graphics panel settings.
+            public float[] GraphicsTransformElements = null;
+            public bool GraphicsShowGrid = true;
+            public bool GraphicsYIsUp = false;
+            // 
 
             // Placement of this form.
-            public WindowPlacement windowPlacement = null;
+            public WindowPlacement WindowPlacement = null;
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -156,8 +159,8 @@ namespace PyDoodle
 
             StopScript();
 
-            LoadStateForScript(@"C:\tom\pydoodle\test.py");
-            RunScript(@"C:\tom\pydoodle\test.py");
+            if (_main.LastFile != null)
+                RunScript(_main.LastFile, true);
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -196,7 +199,7 @@ namespace PyDoodle
             {
                 string fileName = tsmi.Tag as string;
                 if (fileName != null)
-                    RunScript(fileName);
+                    RunScript(fileName, true);
             }
         }
 
@@ -223,6 +226,9 @@ namespace PyDoodle
 
         private void TickPython(Graphics g)
         {
+            if (_scriptEngine == null)
+                return;
+
             _pydoodleModule.Graphics = g;
 
             try
@@ -280,7 +286,7 @@ namespace PyDoodle
             if (result != DialogResult.OK)
                 return;
 
-            RunScript(ofd.FileName);
+            RunScript(ofd.FileName, true);
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -290,7 +296,7 @@ namespace PyDoodle
         {
             if (_scriptState != ScriptState.RerunPending)
             {
-                this.BeginInvoke(new Action<string>(this.RunScript), new object[] { _scriptFileName, });
+                this.BeginInvoke(new Action<string, bool>(this.RunScript), new object[] { _scriptFileName, false, });
 
                 _scriptState = ScriptState.RerunPending;
             }
@@ -322,11 +328,17 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public void RunScript(string fileName)
+        private void RunScript(string fileName, bool loadLayoutForScript)
         {
             SaveStateForScript();
 
             StopScript();
+
+            //
+            if (loadLayoutForScript)
+                LoadLayoutForScript(fileName);
+
+            LoadStateForScript(fileName);
 
             // Initialise basic script stuff.
             Dictionary<string, object> options = new Dictionary<string, object>();
@@ -451,8 +463,11 @@ namespace PyDoodle
             {
                 Config config = new Config();
 
-                config.graphicsTransformElements = _graphicsPanel.GraphicsTransform.Elements;
-                config.windowPlacement = WindowPlacement.GetWindowPlacement(this);
+                config.GraphicsTransformElements = _graphicsPanel.GraphicsTransform.Elements;
+                config.GraphicsShowGrid = _graphicsPanel.GraphicsShowGrid;
+                config.GraphicsYIsUp = _graphicsPanel.GraphicsYIsUp;
+
+                config.WindowPlacement = WindowPlacement.GetWindowPlacement(this);
 
                 Misc.SaveXml(GetConfigFileName(_scriptFileName), config);
             }
@@ -472,13 +487,13 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        private void LoadStateForScript(string scriptFileName)
+        private void LoadLayoutForScript(string scriptFileName)
         {
             Config config = Misc.LoadXmlOrCreateDefault<Config>(GetConfigFileName(scriptFileName));
 
             // Set main form placement
-            if (config.windowPlacement != null)
-                config.windowPlacement.Set(this);
+            if (config.WindowPlacement != null)
+                config.WindowPlacement.Set(this);
 
             // Load dock layout
             {
@@ -504,16 +519,24 @@ namespace PyDoodle
 
                 PostLoadPanels();
             }
+        }
 
-            // Load graphics panel transform
+        private void LoadStateForScript(string scriptFileName)
+        {
+            Config config = Misc.LoadXmlOrCreateDefault<Config>(GetConfigFileName(scriptFileName));
+
+            // Load graphics panel settings
             {
-                if (config.graphicsTransformElements != null && config.graphicsTransformElements.Length >= 6)
+                if (config.GraphicsTransformElements != null && config.GraphicsTransformElements.Length >= 6)
                 {
                     _graphicsPanel.GraphicsTransform = new Matrix(
-                        config.graphicsTransformElements[0], config.graphicsTransformElements[1],
-                        config.graphicsTransformElements[2], config.graphicsTransformElements[3],
-                        config.graphicsTransformElements[4], config.graphicsTransformElements[5]);
+                        config.GraphicsTransformElements[0], config.GraphicsTransformElements[1],
+                        config.GraphicsTransformElements[2], config.GraphicsTransformElements[3],
+                        config.GraphicsTransformElements[4], config.GraphicsTransformElements[5]);
                 }
+
+                _graphicsPanel.GraphicsYIsUp = config.GraphicsYIsUp;
+                _graphicsPanel.GraphicsShowGrid = config.GraphicsShowGrid;
             }
         }
 

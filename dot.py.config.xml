@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <GraphicsTransformElements>
+    <float>10.3183327</float>
+    <float>0</float>
+    <float>0</float>
+    <float>10.3183327</float>
+    <float>369</float>
+    <float>317</float>
+  </GraphicsTransformElements>
+  <GraphicsShowGrid>true</GraphicsShowGrid>
+  <GraphicsYIsUp>true</GraphicsYIsUp>
+  <WindowPlacement>
+    <length>44</length>
+    <flags>0</flags>
+    <showCmd>1</showCmd>
+    <ptMinPosition>
+      <x>-1</x>
+      <y>-1</y>
+    </ptMinPosition>
+    <ptMaxPosition>
+      <x>-1</x>
+      <y>-1</y>
+    </ptMaxPosition>
+    <rcNormalPosition>
+      <left>75</left>
+      <top>75</top>
+      <right>1258</right>
+      <bottom>967</bottom>
+    </rcNormalPosition>
+  </WindowPlacement>
+</Config>

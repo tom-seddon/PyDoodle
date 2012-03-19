@@ -16,6 +16,8 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
 
         private bool _showGrid;
+        private bool _yIsUp;
+
         private Pen _posXPen, _negXPen, _posYPen, _negYPen;
 
         private Matrix _matrix;
@@ -53,17 +55,34 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
+        public bool YIsUp
+        {
+            get { return _yIsUp; }
+            set
+            {
+                if (_yIsUp != value)
+                {
+                    _yIsUp = value;
+                    this.Invalidate();
+                }
+            }
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public GraphicsControl()
         {
             InitializeComponent();
 
             _showGrid = true;
+            _yIsUp = false;
 
-            _posXPen = new Pen(Color.Red);
-            _negXPen = new Pen(Color.DarkRed);
+            _posXPen = new Pen(Color.Red, 0);
+            _negXPen = new Pen(Color.DarkRed, 0);
 
-            _posYPen = new Pen(Color.Green);
-            _negYPen = new Pen(Color.DarkGreen);
+            _posYPen = new Pen(Color.Green, 0);
+            _negYPen = new Pen(Color.DarkGreen, 0);
 
             _matrix = new Matrix();
 
@@ -77,26 +96,36 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        private void HandlePaint(object sender, PaintEventArgs e)
+        private void HandlePaint(object sender, PaintEventArgs pea)
         {
             Matrix m = new Matrix();
 
-            e.Graphics.Transform = _matrix.Clone();
+            {
+                float[] e = _matrix.Elements;
 
-            e.Graphics.Clear(Color.White);
+                if (_yIsUp)
+                {
+                    e[2] = -e[2];
+                    e[3] = -e[3];
+                }
+
+                pea.Graphics.Transform = new Matrix(e[0], e[1], e[2], e[3], e[4], e[5]);
+            }
+
+            pea.Graphics.Clear(Color.White);
 
             if (_showGrid)
             {
                 int infinity = 1000;// ...close enough
 
-                e.Graphics.DrawLine(_posXPen, 0, 0, infinity, 0);
-                e.Graphics.DrawLine(_negXPen, 0, 0, -infinity, 0);
-                e.Graphics.DrawLine(_posYPen, 0, 0, 0, infinity);
-                e.Graphics.DrawLine(_negYPen, 0, 0, 0, -infinity);
+                pea.Graphics.DrawLine(_posXPen, 0, 0, infinity, 0);
+                pea.Graphics.DrawLine(_negXPen, 0, 0, -infinity, 0);
+                pea.Graphics.DrawLine(_posYPen, 0, 0, 0, infinity);
+                pea.Graphics.DrawLine(_negYPen, 0, 0, 0, -infinity);
             }
 
             if (this.DelegatedPaint != null)
-                this.DelegatedPaint(sender, e);
+                this.DelegatedPaint(sender, pea);
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -139,6 +168,8 @@ namespace PyDoodle
                         _matrix.RotateAt(theta, _dragScenePos);
 
                         _dragControlPos = e.Location;
+
+                        Invalidate();
                     }
                     else
                         _dragState = DragState.None;
@@ -152,6 +183,8 @@ namespace PyDoodle
                         _matrix.Translate(e.Location.X - _dragControlPos.X, e.Location.Y - _dragControlPos.Y, MatrixOrder.Append);
 
                         _dragControlPos = e.Location;
+
+                        Invalidate();
                     }
                     else
                         _dragState = DragState.None;

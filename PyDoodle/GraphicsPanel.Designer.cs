@@ -31,6 +31,7 @@
             System.Drawing.Drawing2D.Matrix matrix1 = new System.Drawing.Drawing2D.Matrix();
             this._showGridCheckBox = new System.Windows.Forms.CheckBox();
             this._resetButton = new System.Windows.Forms.Button();
+            this._yIsUp = new System.Windows.Forms.CheckBox();
             this._graphicsControl = new PyDoodle.GraphicsControl();
             this.SuspendLayout();
             // 
@@ -38,7 +39,7 @@
             // 
             this._showGridCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this._showGridCheckBox.AutoSize = true;
-            this._showGridCheckBox.Location = new System.Drawing.Point(12, 233);
+            this._showGridCheckBox.Location = new System.Drawing.Point(12, 237);
             this._showGridCheckBox.Name = "_showGridCheckBox";
             this._showGridCheckBox.Size = new System.Drawing.Size(75, 17);
             this._showGridCheckBox.TabIndex = 2;
@@ -57,6 +58,18 @@
             this._resetButton.UseVisualStyleBackColor = true;
             this._resetButton.Click += new System.EventHandler(this._resetButton_Click);
             // 
+            // _yIsUp
+            // 
+            this._yIsUp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this._yIsUp.AutoSize = true;
+            this._yIsUp.Location = new System.Drawing.Point(93, 237);
+            this._yIsUp.Name = "_yIsUp";
+            this._yIsUp.Size = new System.Drawing.Size(60, 17);
+            this._yIsUp.TabIndex = 4;
+            this._yIsUp.Text = "Y is Up";
+            this._yIsUp.UseVisualStyleBackColor = true;
+            this._yIsUp.CheckedChanged += new System.EventHandler(this._yIsUp_CheckedChanged);
+            // 
             // _graphicsControl
             // 
             this._graphicsControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -69,6 +82,7 @@
             this._graphicsControl.Size = new System.Drawing.Size(284, 227);
             this._graphicsControl.TabIndex = 0;
             this._graphicsControl.Transform = matrix1;
+            this._graphicsControl.YIsUp = false;
             // 
             // GraphicsPanel
             // 
@@ -77,6 +91,7 @@
             this.ClientSize = new System.Drawing.Size(284, 262);
             this.CloseButton = false;
             this.CloseButtonVisible = false;
+            this.Controls.Add(this._yIsUp);
             this.Controls.Add(this._resetButton);
             this.Controls.Add(this._showGridCheckBox);
             this.Controls.Add(this._graphicsControl);
@@ -93,5 +108,6 @@
         private GraphicsControl _graphicsControl;
         private System.Windows.Forms.CheckBox _showGridCheckBox;
         private System.Windows.Forms.Button _resetButton;
+        private System.Windows.Forms.CheckBox _yIsUp;
     }
 }

@@ -10,6 +10,8 @@ using IronPython.Runtime;
 using IronPython.Hosting;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.Scripting.Runtime;
+using System.Security;
 
 namespace PyDoodle
 {
@@ -270,5 +272,151 @@ namespace PyDoodle
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
+
+        public static string[] TryReadAllLines(string fileName)
+        {
+            try
+            {
+                return File.ReadAllLines(fileName);
+            }
+            catch (ArgumentException)
+            {
+            }
+            catch (PathTooLongException)
+            {
+            }
+            catch (DirectoryNotFoundException)
+            {
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+            catch (NotSupportedException)
+            {
+            }
+            catch (SecurityException)
+            {
+            }
+
+            return new string[] { };
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static string GetScriptExceptionDynamicStackFramesTrace(Exception e)
+        {
+            var sourceFiles = new Dictionary<string, string[]>(FileNamesComparer.instance);
+            var stackFrames = GetScriptExceptionDynamicStackFrames(e);
+            var builder = new StringBuilder();
+
+            foreach (var stackFrame in stackFrames)
+            {
+                string fileName = stackFrame.GetFileName();
+                int lineNumber = stackFrame.GetFileLineNumber();
+
+                string[] fileContents;
+                if (!sourceFiles.TryGetValue(fileName, out fileContents))
+                {
+                    fileContents = TryReadAllLines(fileName);
+                    sourceFiles[fileName] = fileContents;
+                }
+
+                builder.AppendFormat("{0}({1})", fileName, lineNumber);
+
+                if (fileContents != null && lineNumber - 1 < fileContents.Length)
+                    builder.AppendFormat(": {0}", fileContents[lineNumber - 1]);
+
+                builder.Append(Environment.NewLine);
+            }
+
+            return builder.ToString();
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public static List<DynamicStackFrame> GetScriptExceptionDynamicStackFrames(Exception e)
+        {
+            List<DynamicStackFrame> stackFrames = new List<DynamicStackFrame>();
+
+            Type key = typeof(DynamicStackFrame);
+            if (e.Data.Contains(key))
+            {
+                var exceptionStackFrames = e.Data[key] as List<DynamicStackFrame>;
+                if (exceptionStackFrames != null)
+                {
+                    foreach (DynamicStackFrame stackFrame in exceptionStackFrames)
+                        stackFrames.Add(stackFrame);
+                }
+            }
+
+            return stackFrames;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+    }
+
+    /// <summary>
+    /// IEqualityComparer for filenames.
+    /// 
+    /// This is not especially efficient.
+    /// </summary>
+    public class FileNamesComparer :
+        IEqualityComparer<string>,
+        IComparer<string>
+    {
+        private static String GetNormalizedFilename(String filename)
+        {
+            return filename.Replace('/', '\\').ToLower();
+        }
+
+        public bool Equals(string a, string b)
+        {
+            string anorm = GetNormalizedFilename(a);
+            string bnorm = GetNormalizedFilename(b);
+
+            return anorm.Equals(bnorm);
+        }
+
+        public int Compare(string a, string b)
+        {
+            string anorm = GetNormalizedFilename(a);
+            string bnorm = GetNormalizedFilename(b);
+
+            return string.Compare(anorm, bnorm);
+        }
+
+        public int GetHashCode(string obj)
+        {
+            return GetNormalizedFilename(obj).GetHashCode();
+        }
+
+        public static readonly FileNamesComparer instance = new FileNamesComparer();
+
+        /// <summary>
+        /// returns a new predicate that checks whether its argument seems to
+        /// refer to the same filename as that passed in to generate the
+        /// predicate.
+        /// 
+        /// I think this deserves a better name but I don't know what.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        public static Predicate<string> GetFilenamePredicate(string filename)
+        {
+            string filenamenorm = GetNormalizedFilename(filename);
+
+            return delegate(string f)
+            {
+                string fnorm = GetNormalizedFilename(f);
+
+                return fnorm.Equals(filenamenorm, StringComparison.CurrentCultureIgnoreCase);
+            };
+        }
     }
 }

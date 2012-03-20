@@ -16,5 +16,11 @@ namespace PyDoodle
         {
             InitializeComponent();
         }
+
+        public string PanelText
+        {
+            get { return _textBox.Text; }
+            set { _textBox.Text = value; }
+        }
     }
 }

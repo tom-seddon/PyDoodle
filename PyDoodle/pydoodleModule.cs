@@ -13,16 +13,25 @@ namespace PyDoodle
 {
     public class pydoodleModule
     {
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         private MainForm _mainForm;
         private Graphics _graphics;
         private ObjectOperations _operations;
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+        
         public Graphics Graphics
         {
             get { return _graphics; }
             set { _graphics = value; }
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+        
         class DrawState : ICloneable
         {
             private Color _colour;
@@ -71,8 +80,14 @@ namespace PyDoodle
             }
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+        
         private Stack<DrawState> _drawStateStack;
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+        
         public pydoodleModule(ScriptEngine se, MainForm mainForm)
         {
             _mainForm = mainForm;
@@ -87,7 +102,9 @@ namespace PyDoodle
             ss.SetVariable("pop_draw_state", new Action(this.push_draw_state));
             ss.SetVariable("set_draw_colour_rgba", new Action<float, float, float, float>(this.set_draw_colour_rgba));
             ss.SetVariable("set_draw_colour_rgb", new Action<float, float, float>(this.set_draw_colour_rgb));
-            ss.SetVariable("tweak", new tweak_type(this.tweak));
+            ss.SetVariable("tweakn", new tweaknType(this.tweakn));
+            //ss.SetVariable("handle", new handleDelegate(this.handle));
+            ss.SetVariable("ref_test",new ref_testDelegate(this.ref_test));
 
             _drawStateStack = new Stack<DrawState>();
             _drawStateStack.Push(new DrawState());
@@ -95,11 +112,32 @@ namespace PyDoodle
             _operations = se.CreateOperations();
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+        
+        private delegate void ref_testDelegate(ref float f, ref V2 v);
+        private void ref_test(ref float f, ref V2 v)
+        {
+            Console.WriteLine("ref_test: in: f={0} v={1}", f, v);
+
+            f += 1f;
+            v.x += 1.0;
+            v.y += 1.0;
+
+            Console.WriteLine("ref_test: out: f={0} v={1}", f, v);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+        
         private void set_draw_colour_rgb(float r, float g, float b)
         {
             set_draw_colour_rgba(r, g, b, 1.0f);
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+        
         private static int GetColourByte(float v)
         {
             if (v < .0f)
@@ -110,16 +148,25 @@ namespace PyDoodle
                 return (int)(v * 255.0f);
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         private void push_draw_state()
         {
             DrawState tos = (DrawState)_drawStateStack.Peek().Clone();
             _drawStateStack.Push(tos);
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         private void pop_draw_state()
         {
             _drawStateStack.Pop();
         }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
         private void set_draw_colour_rgba(float r, float g, float b, float a)
         {
@@ -131,6 +178,9 @@ namespace PyDoodle
             _drawStateStack.Peek().Colour = Color.FromArgb(ia, ir, ig, ib);
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public void line(V2 a, V2 b)
         {
             if (_graphics == null)
@@ -139,6 +189,9 @@ namespace PyDoodle
             Pen pen = _drawStateStack.Peek().Pen;
             _graphics.DrawLine(pen, (float)a.x, (float)a.y, (float)b.x, (float)b.y);
         }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
 
         public void circle(V2 c, float r)
         {
@@ -151,8 +204,11 @@ namespace PyDoodle
             _graphics.DrawEllipse(pen, rect);
         }
 
-        public delegate void tweak_type(CodeContext context, object pyobj, params string[] attrs);
-        public void tweak(CodeContext context, object pyobj, params object[] attrs)
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public delegate void tweaknType(CodeContext context, object pyobj, params string[] attrs);
+        public void tweakn(CodeContext context, object pyobj, params object[] attrs)
         {
             for (int i = 0; i < attrs.Length; ++i)
             {
@@ -212,9 +268,35 @@ namespace PyDoodle
             }
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+//         private delegate void handleDelegate(CodeContext context, object pyobj, params string[] attrs);
+//         private void handle(CodeContext context, object pyobj, params string[] attrs)
+//         {
+//             if (_graphics == null)
+//                 return;
+// 
+//             foreach (string attr in attrs)
+//             {
+//                 dynamic attrValue = _operations.GetMember(pyobj, attrName);
+// 
+//                 if (attrValue is V2)
+//                 {
+// 
+//                 }
+//             }
+//         }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         private void run(object runPyobj)
         {
             _mainForm.RunPyobj = runPyobj;
         }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
     }
 }

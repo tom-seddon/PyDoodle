@@ -256,15 +256,20 @@ namespace PyDoodle
                 _scriptException = e;
                 _scriptState = ScriptState.Borked;
 
-                List<object> keys = new List<object>(from object key in _scriptException.Data.Keys select key);
-                List<object> values = new List<object>(from object value in _scriptException.Data.Values select value);
+                _textPanel.PanelText="";
 
-                for (int i = 0; i < keys.Count; ++i)
-                {
-                    Console.WriteLine("{0} ({1}): {2} ({3})", keys[i], keys[i].GetType(), values[i], values[i].GetType());
-                }
+                _textPanel.PanelText+="Exception: "+e.Message+Environment.NewLine;
+                _textPanel.PanelText+=Misc.GetScriptExceptionDynamicStackFramesTrace(e);
 
-                Console.WriteLine("meh");
+//                 List<object> keys = new List<object>(from object key in _scriptException.Data.Keys select key);
+//                 List<object> values = new List<object>(from object value in _scriptException.Data.Values select value);
+// 
+//                 for (int i = 0; i < keys.Count; ++i)
+//                 {
+//                     Console.WriteLine("{0} ({1}): {2} ({3})", keys[i], keys[i].GetType(), values[i], values[i].GetType());
+//                 }
+// 
+//                 Console.WriteLine("meh");
             }
 
             _pydoodleModule.Graphics = null;
@@ -386,16 +391,8 @@ namespace PyDoodle
             // 
             if (_scriptState == ScriptState.Borked)
             {
-                Type key = typeof(DynamicStackFrame);
-                if (_scriptException.Data.Contains(key))
-                {
-                    var stackFrames = _scriptException.Data[key] as List<DynamicStackFrame>;
-                    if (stackFrames != null)
-                    {
-                        foreach (DynamicStackFrame stackFrame in stackFrames)
-                            moduleFileNames.Add(stackFrame.GetFileName());
-                    }
-                }
+                foreach (DynamicStackFrame stackFrame in Misc.GetScriptExceptionDynamicStackFrames(_scriptException))
+                    moduleFileNames.Add(stackFrame.GetFileName());
             }
 
             // Watch for further changes.

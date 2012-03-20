@@ -13,5 +13,7 @@ class Dot:
         set_draw_colour_rgb(0,1,0)
         line(self.a,self.c)
 
+        #handle(self,"a","b","c")
+
 run(Dot())
 

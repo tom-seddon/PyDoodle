@@ -92,6 +92,7 @@
     <Compile Include="TweakFloatControl.Designer.cs">
       <DependentUpon>TweakFloatControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="TweakTool.cs" />
     <Compile Include="TweakStringControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -116,6 +117,7 @@
     <Compile Include="TweakV2Control.Designer.cs">
       <DependentUpon>TweakV2Control.cs</DependentUpon>
     </Compile>
+    <Compile Include="TweakV2Tool.cs" />
     <Compile Include="V2.cs" />
     <Compile Include="WindowPlacement.cs" />
     <EmbeddedResource Include="GraphicsControl.resx">

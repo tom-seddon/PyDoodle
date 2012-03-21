@@ -519,6 +519,9 @@ namespace PyDoodle
             }
         }
 
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         private void LoadStateForScript(string scriptFileName)
         {
             Config config = Misc.LoadXmlOrCreateDefault<Config>(GetConfigFileName(scriptFileName));
@@ -536,6 +539,14 @@ namespace PyDoodle
                 _graphicsPanel.GraphicsYIsUp = config.GraphicsYIsUp;
                 _graphicsPanel.GraphicsShowGrid = config.GraphicsShowGrid;
             }
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(this, "An interactive programmable plaything", "PyDoodle");
         }
 
         //-///////////////////////////////////////////////////////////////////////

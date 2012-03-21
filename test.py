@@ -20,12 +20,12 @@ class Test:
 		self.str="Test String"
 		self.angle=0.0
 		self.r=0.0
-		tweakn(self,
+		tweaks(attrs(self,
 			   "start",
 			   #"end",
 			   "str",
 			   "angle",
-			   "r")
+			   "r"))
 
 		self.theta=0
 

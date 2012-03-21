@@ -18,8 +18,6 @@ namespace PyDoodle
         private pydoodleModule _module;
         private object _pyobj;
         private string _name;
-        private Handle _handle;
-        private bool _autoCreateHandleField;
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
@@ -51,30 +49,10 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public Handle Handle
-        {
-            get { return _handle; }
-            set { _handle = value; }
-        }
-
-        //-///////////////////////////////////////////////////////////////////////
-        //-///////////////////////////////////////////////////////////////////////
-
-        public bool AutoCreateHandleField
-        {
-            get { return _autoCreateHandleField; }
-            set { _autoCreateHandleField = value; }
-        }
-
-        //-///////////////////////////////////////////////////////////////////////
-        //-///////////////////////////////////////////////////////////////////////
-
         public Attr(object pyobj, string name)
         {
             _pyobj = pyobj;
             _name = name;
-            _handle = null;
-            _autoCreateHandleField = true;
             _module = null;
         }
 

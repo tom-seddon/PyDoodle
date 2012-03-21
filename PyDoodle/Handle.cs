@@ -21,25 +21,14 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public Attr Attr
-        {
-            set
-            {
-                if (_attr != null)
-                    throw new InvalidOperationException("Handle already has an attribute set");
-
-                _attr = value;
-            }
-
-            get { return _attr; }
-        }
+        public Attr Attr { get { return _attr; } }
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public Handle()
+        public Handle(Attr attr)
         {
-            _attr = null;
+            _attr = attr;
         }
 
         //-///////////////////////////////////////////////////////////////////////

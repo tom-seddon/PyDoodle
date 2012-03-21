@@ -54,6 +54,13 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
+        // Attrs come from a pool, so that there's (mostly) one Attr per Python
+        // variable.
+        private List<Attr> _attrPool;
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public pydoodleModule(ScriptEngine se, MainForm mainForm)
         {
             _mainForm = mainForm;
@@ -65,9 +72,11 @@ namespace PyDoodle
             ss.SetVariable("line", new Action<V2, V2>(this.line));
             ss.SetVariable("circle", new Action<V2, float>(this.circle));
             ss.SetVariable("set_draw_colour", new Action<Colour>(this.set_draw_colour));
-            ss.SetVariable("tweakn", new tweaknType(this.tweakn));
-            ss.SetVariable("Attr", DynamicHelpers.GetPythonTypeFromType(typeof(Attr)));
-            ss.SetVariable("TranslateHandle", DynamicHelpers.GetPythonTypeFromType(typeof(TranslateHandle)));
+            ss.SetVariable("tweaks", new Action<Attr[]>(this.tweaks));
+            ss.SetVariable("add_translate_handles", new Action<Attr[]>(this.add_translate_handles));
+            //ss.SetVariable("TranslateHandle", DynamicHelpers.GetPythonTypeFromType(typeof(TranslateHandle)));
+            ss.SetVariable("attr", new Func<object, string, Attr>(this.attr));
+            ss.SetVariable("attrs", new attrsType(this.attrs));
 
             {
                 PythonType colourType = DynamicHelpers.GetPythonTypeFromType(typeof(Colour));
@@ -76,6 +85,55 @@ namespace PyDoodle
             }
 
             _operations = se.CreateOperations();
+
+            _attrPool = new List<Attr>();
+
+            set_draw_colour(new Colour(0f, 0f, 0f, 1f));
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// returns Attr for the given attribute on the given object.
+        /// </summary>
+        /// <param name="pyobj"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private Attr attr(object pyobj, string name)
+        {
+            Attr newAttr = new Attr(pyobj, name);
+
+            foreach (Attr attr in _attrPool)
+            {
+                if (attr.IsEquivalent(newAttr))
+                    return attr;
+            }
+
+            _attrPool.Add(newAttr);
+            return newAttr;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private delegate Attr[] attrsType(object pyobj, params string[] names);
+
+        /// <summary>
+        /// Returns list of Attr, one for each mentioned attribute on the given
+        /// object.
+        /// </summary>
+        /// <param name="pyobj"></param>
+        /// <param name="names"></param>
+        /// <returns></returns>
+        private Attr[] attrs(object pyobj, params string[] names)
+        {
+            Attr[] attrs = new Attr[names.Length];
+
+            for (int i = 0; i < names.Length; ++i)
+                attrs[i] = attr(pyobj, names[i]);
+
+            return attrs;
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -115,8 +173,28 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public delegate void tweaknType(params Attr[] attrs);
-        public void tweakn(params Attr[] attrs)
+        private void AddHandle(Handle handle)
+        {
+            _operations.SetMember(handle.Attr.Pyobj, handle.Attr.Name + "_handle", handle);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void add_translate_handles(Attr[] attrs)
+        {
+            foreach (Attr attr in attrs)
+                AddHandle(new TranslateHandle(attr));
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Adds tweaks as appropriate for the given list of attributes.
+        /// </summary>
+        /// <param name="attrs"></param>
+        private void tweaks(Attr[] attrs)
         {
             for (int i = 0; i < attrs.Length; ++i)
             {
@@ -137,18 +215,9 @@ namespace PyDoodle
                 else if (attrValue is float || attrValue is double)
                     tweakControl = new TweakFloatControl(attr);
                 else
-                    throw new ArgumentException(string.Format("Attribute {0} - no tweaker for type {1}.", attr.Name, attrValue.GetType()));
+                    throw new ArgumentException(string.Format("Attr {0} - no tweaker for type {1}.", attr.Name, attrValue.GetType()));
 
                 _mainForm.TweaksPanel.AddTweakControl(tweakControl);
-
-                // Install handler?
-                if (attr.Handle != null)
-                {
-                    if (attr.AutoCreateHandleField)
-                        _operations.SetMember(attr.Pyobj, attr.Name + "_handle", attr.Handle);
-
-                    attr.Handle.Attr = attr;
-                }
             }
         }
 

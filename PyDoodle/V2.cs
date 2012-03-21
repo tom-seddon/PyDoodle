@@ -7,6 +7,8 @@ namespace PyDoodle
 {
     public struct V2
     {
+        // Non-CLR methods are named python-style.
+
         public static readonly V2 V00 = new V2(0, 0);
 
         public double x, y;
@@ -17,7 +19,7 @@ namespace PyDoodle
             this.y = y;
         }
 
-        public static V2 FromAngle(double angle)
+        public static V2 from_angle(double angle)
         {
             return new V2(Math.Sin(angle), Math.Cos(angle));
         }
@@ -62,7 +64,7 @@ namespace PyDoodle
             return new V2(a.x / b, a.y / b);
         }
 
-        public static double Dot(V2 a, V2 b)
+        public static double dot(V2 a, V2 b)
         {
             return a.x * b.x + a.y * b.y;
         }
@@ -87,26 +89,26 @@ namespace PyDoodle
             return x.GetHashCode() + y.GetHashCode();//???
         }
 
-        public double GetLengthSq()
+        public double lensq()
         {
-            return Dot(this, this);
+            return dot(this, this);
         }
 
-        public double GetLength()
+        public double len()
         {
-            return Math.Sqrt(GetLengthSq());
+            return Math.Sqrt(lensq());
         }
 
-        public V2 GetNormalised()
+        public V2 normalized()
         {
-            double len = GetLength();
-            if (len == 0.0)
+            double l = len();
+            if (l == 0.0)
                 return this;
             else
-                return this / len;
+                return this / l;
         }
 
-        public V2 GetPerp()
+        public V2 perp()
         {
             return new V2(-y, x);
         }
@@ -120,6 +122,11 @@ namespace PyDoodle
         //         {
         //             return new SizeF((float)x, (float)y);
         //         }
+
+        public static V2 lerp(V2 a, V2 b, float t)
+        {
+            return new V2(a.x + t * (b.x - a.x), a.y + t * (b.y - a.y));
+        }
 
         public static V2 Min(V2 a, V2 b)
         {

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <GraphicsTransformElements>
-    <float>6.00939465</float>
-    <float>-9.544785</float>
-    <float>9.54475</float>
-    <float>6.00941658</float>
-    <float>441.568726</float>
-    <float>326.387329</float>
+    <float>0.9978308</float>
+    <float>-0.06574828</float>
+    <float>0.06574751</float>
+    <float>0.9978257</float>
+    <float>581.4205</float>
+    <float>383.234863</float>
   </GraphicsTransformElements>
   <GraphicsShowGrid>true</GraphicsShowGrid>
   <GraphicsYIsUp>true</GraphicsYIsUp>

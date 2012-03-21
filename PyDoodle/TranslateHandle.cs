@@ -25,8 +25,12 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public TranslateHandle()
+        public TranslateHandle(Attr attr)
+            : base(attr)
         {
+            if (!(attr.GetValue() is V2))
+                throw new ArgumentException("Attr for TranslateHandle must be V2, not "+attr.GetValue().GetType());
+
             _radius = 10;//in pixels.
             _transform = null;
             _dragging = false;
@@ -102,7 +106,7 @@ namespace PyDoodle
 
                 delta = mouseScreenPos - screenPos;
 
-                if (delta.GetLengthSq() < _radius * _radius)
+                if (delta.lensq() < _radius * _radius)
                     hover = true;
             }
 

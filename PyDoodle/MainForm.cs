@@ -234,8 +234,7 @@ namespace PyDoodle
             if (_scriptEngine == null)
                 return;
 
-            _pydoodleModule.Graphics = g;
-            _pydoodleModule.GraphicsControl = GraphicsPanel.GraphicsControl;
+            _pydoodleModule.BeginDraw(g, GraphicsPanel.GraphicsControl);
 
             try
             {
@@ -272,8 +271,7 @@ namespace PyDoodle
                 _textPanel.PanelText+=Misc.GetScriptExceptionDynamicStackFramesTrace(e);
             }
 
-            _pydoodleModule.GraphicsControl = null;
-            _pydoodleModule.Graphics = null;
+            _pydoodleModule.EndDraw();
         }
 
         //-///////////////////////////////////////////////////////////////////////

@@ -274,6 +274,22 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
+        public static bool ArePointsCloser(PointF a, PointF b, float r)
+        {
+            float dx = a.X - b.X;
+            float dy = a.Y - b.Y;
+
+            float distSq = dx * dx + dy * dy;
+
+            if (distSq > r * r)
+                return false;
+            else
+                return true;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public static string[] TryReadAllLines(string fileName)
         {
             try

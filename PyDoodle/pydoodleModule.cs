@@ -22,13 +22,14 @@ namespace PyDoodle
         private ObjectOperations _operations;
         private GraphicsControl _graphicsControl;
 
+        private static readonly Matrix identityMatrix = new Matrix();
+
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
         public GraphicsControl GraphicsControl
         {
             get { return _graphicsControl; }
-            set { _graphicsControl = value; }
         }
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
@@ -36,7 +37,6 @@ namespace PyDoodle
         public Graphics Graphics
         {
             get { return _graphics; }
-            set { _graphics = value; }
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -61,6 +61,26 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
+        public void BeginDraw(Graphics graphics, GraphicsControl graphicsControl)
+        {
+            _graphics = graphics;
+            _graphicsControl = graphicsControl;
+
+            set_colour(new Colour(0f, 0f, 0f, 1f));
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public void EndDraw()
+        {
+            _graphics = null;
+            _graphicsControl = null;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public pydoodleModule(ScriptEngine se, MainForm mainForm)
         {
             _mainForm = mainForm;
@@ -69,11 +89,27 @@ namespace PyDoodle
 
             ss.SetVariable("run", new Action<object>(this.run));
             ss.SetVariable("V2", DynamicHelpers.GetPythonTypeFromType(typeof(V2)));
+
             ss.SetVariable("line", new Action<V2, V2>(this.line));
+
             ss.SetVariable("circle", new Action<V2, float>(this.circle));
-            ss.SetVariable("set_draw_colour", new Action<Colour>(this.set_draw_colour));
+            ss.SetVariable("fcircle", new Action<V2, float>(this.fcircle));
+
+            ss.SetVariable("ellipse", new Action<V2, float, float>(this.ellipse));
+            ss.SetVariable("fellipse", new Action<V2, float, float>(this.fellipse));
+
+            ss.SetVariable("box", new Action<V2, V2>(this.box));
+            ss.SetVariable("fbox", new Action<V2, V2>(this.fbox));
+
+            ss.SetVariable("text", new Action<V2, string>(this.text));
+
+            ss.SetVariable("set_colour", new Action<Colour>(this.set_colour));
+
             ss.SetVariable("tweaks", new Action<Attr[]>(this.tweaks));
+
             ss.SetVariable("add_translate_handles", new Action<Attr[]>(this.add_translate_handles));
+            ss.SetVariable("add_rotate_handles", new Action<Attr[]>(this.add_rotate_handles));
+
             //ss.SetVariable("TranslateHandle", DynamicHelpers.GetPythonTypeFromType(typeof(TranslateHandle)));
             ss.SetVariable("attr", new Func<object, string, Attr>(this.attr));
             ss.SetVariable("attrs", new attrsType(this.attrs));
@@ -87,8 +123,6 @@ namespace PyDoodle
             _operations = se.CreateOperations();
 
             _attrPool = new List<Attr>();
-
-            set_draw_colour(new Colour(0f, 0f, 0f, 1f));
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -102,7 +136,7 @@ namespace PyDoodle
         /// <returns></returns>
         private Attr attr(object pyobj, string name)
         {
-            Attr newAttr = new Attr(pyobj, name);
+            Attr newAttr = new Attr(this, pyobj, name);
 
             foreach (Attr attr in _attrPool)
             {
@@ -139,7 +173,7 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        private void set_draw_colour(Colour colour)
+        private void set_colour(Colour colour)
         {
             _drawColour = colour.AsColor();
             _drawPen = new Pen(_drawColour);
@@ -149,7 +183,7 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public void line(V2 a, V2 b)
+        private void line(V2 a, V2 b)
         {
             if (_graphics == null)
                 return;
@@ -160,14 +194,95 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public void circle(V2 c, float r)
+        private void circle(V2 c, float r)
+        {
+            ellipse(c, r, r);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void fcircle(V2 c, float r)
+        {
+            fellipse(c, r, r);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void ellipse(V2 c, float rx, float ry)
         {
             if (_graphics == null)
                 return;
 
-            RectangleF rect = new RectangleF((float)c.x - r, (float)c.y - r, r * 2, r * 2);
+            RectangleF rect = new RectangleF((float)c.x - rx, (float)c.y - ry, rx * 2, ry * 2);
 
             _graphics.DrawEllipse(_drawPen, rect);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void fellipse(V2 c, float rx, float ry)
+        {
+            if (_graphics == null)
+                return;
+
+            RectangleF rect = new RectangleF((float)c.x - rx, (float)c.y - ry, rx * 2, ry * 2);
+
+            _graphics.FillEllipse(_drawBrush, rect);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private RectangleF GetBoxRect(V2 a, V2 b)
+        {
+            V2 d = b - a;
+
+            return new RectangleF((float)Math.Min(a.x, b.x), (float)Math.Min(a.y, b.y), (float)Math.Abs(d.x), (float)Math.Abs(d.y));
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void box(V2 a, V2 b)
+        {
+            if (_graphics == null)
+                return;
+
+            RectangleF rect = GetBoxRect(a, b);
+            _graphics.DrawRectangle(_drawPen, rect.Left, rect.Top, rect.Width, rect.Height);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void fbox(V2 a, V2 b)
+        {
+            if (_graphics == null)
+                return;
+
+            _graphics.FillRectangle(_drawBrush, GetBoxRect(a, b));
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void text(V2 pos, string text)
+        {
+            if (_graphics == null)
+                return;
+
+            Matrix oldTransform = _graphics.Transform;
+
+            _graphics.Transform = identityMatrix;
+
+            V2 screenPos = Misc.TransformPoint(oldTransform, pos);
+
+            _graphics.DrawString(text, SystemFonts.DefaultFont, _drawBrush, screenPos.AsPointF());
+
+            _graphics.Transform = oldTransform;
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -190,6 +305,15 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
+        private void add_rotate_handles(Attr[] attrs)
+        {
+            foreach (Attr attr in attrs)
+                AddHandle(new RotateHandle(attr));
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         /// <summary>
         /// Adds tweaks as appropriate for the given list of attributes.
         /// </summary>
@@ -199,9 +323,6 @@ namespace PyDoodle
             for (int i = 0; i < attrs.Length; ++i)
             {
                 Attr attr = attrs[i];
-
-                // @TODO: this is a bit mucky...
-                attr.Module = this;
 
                 TweakControl tweakControl = null;
 

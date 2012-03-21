@@ -27,33 +27,18 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
+        public pydoodleModule Module { get { return _module; } }
         public object Pyobj { get { return _pyobj; } }
         public string Name { get { return _name; } }
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public pydoodleModule Module
+        public Attr(pydoodleModule module, object pyobj, string name)
         {
-            set
-            {
-                if (_module != null)
-                    throw new InvalidOperationException("Attr already has a Module set");
-
-                _module = value;
-            }
-
-            get { return _module; }
-        }
-
-        //-///////////////////////////////////////////////////////////////////////
-        //-///////////////////////////////////////////////////////////////////////
-
-        public Attr(object pyobj, string name)
-        {
+            _module = module;
             _pyobj = pyobj;
             _name = name;
-            _module = null;
         }
 
         //-///////////////////////////////////////////////////////////////////////

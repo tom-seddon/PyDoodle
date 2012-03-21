@@ -28,8 +28,11 @@ namespace PyDoodle
         public TranslateHandle(Attr attr)
             : base(attr)
         {
+            if (attr == null)
+                throw new ArgumentNullException("Attr for TranslateHandle may not be null.");
+
             if (!(attr.GetValue() is V2))
-                throw new ArgumentException("Attr for TranslateHandle must be V2, not "+attr.GetValue().GetType());
+                throw new ArgumentException("Attr for TranslateHandle must be V2, not " + attr.GetValue().GetType());
 
             _radius = 10;//in pixels.
             _transform = null;
@@ -79,6 +82,8 @@ namespace PyDoodle
             else
                 colour = Color.Black;
 
+            colour = Color.FromArgb(128, colour.R, colour.G, colour.B);
+
             g.FillEllipse(new SolidBrush(colour), screenPos.X - _radius, screenPos.Y - _radius, _radius * 2, _radius * 2);
 
             g.Restore(gs);
@@ -104,7 +109,7 @@ namespace PyDoodle
             {
                 V2 screenPos = Misc.TransformPoint(_transform, (V2)this.Attr.GetValue());
 
-                delta = mouseScreenPos - screenPos;
+                delta = screenPos - mouseScreenPos;
 
                 if (delta.lensq() < _radius * _radius)
                     hover = true;

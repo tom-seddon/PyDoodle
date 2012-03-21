@@ -40,30 +40,6 @@ namespace PyDoodle
 
         private List<Handle> _handles;
 
-        //private MouseState _lastMouseState;
-        //private MouseState _mouseState;
-
-        //-///////////////////////////////////////////////////////////////////////
-        //-///////////////////////////////////////////////////////////////////////
-
-        //public class MouseState
-        //{
-        //    private Point _location;
-        //    private V2 _scenePos;
-        //    private MouseButtons _buttons;
-
-        //    public System.Drawing.Point Location { get { return _location; } }
-        //    public PyDoodle.V2 ScenePos { get { return _scenePos; } }
-        //    public System.Windows.Forms.MouseButtons Button { get { return _buttons; } }
-
-        //    public MouseState(Point location, V2 scenePos, MouseButtons buttons)
-        //    {
-        //        _location = location;
-        //        _scenePos = scenePos;
-        //        _buttons = buttons;
-        //    }
-        //}
-
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
@@ -122,9 +98,6 @@ namespace PyDoodle
             this.MouseWheel += this.HandleMouseWheel;
 
             _handles = new List<Handle>();
-
-            //_mouseState = null;
-            //_lastMouseState = null;
         }
 
         //-///////////////////////////////////////////////////////////////////////

@@ -11,10 +11,10 @@ class Dot:
                Attr(self,"c",Handle=TranslateHandle()))
 
     def tick(self):
-        set_draw_colour_rgb(1,0,0)
+        set_draw_colour(Colour(1,0,0))
         line(self.a,self.b)
 
-        set_draw_colour_rgb(0,1,0)
+        set_draw_colour(Colour(0,1,0))
         line(self.a,self.c)
 
         self.a_handle.tick()

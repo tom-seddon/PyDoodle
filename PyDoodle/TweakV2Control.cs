@@ -17,7 +17,8 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public TweakV2Control()
+        public TweakV2Control(Attr attr=null)
+            : base(attr)
         {
             InitializeComponent();
 
@@ -32,13 +33,16 @@ namespace PyDoodle
 
             EnterPressed += HandleScriptValueDirty;
 
+            AddAttrValueSetHandler(HandleAttrValueSet);
         }
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public override void SetValue(dynamic newValue)
+        private void HandleAttrValueSet(object sender,EventArgs e)
         {
+            object newValue = ((Attr)sender).GetValue();
+
             if (newValue is V2)
             {
                 V2 v2 = (V2)newValue;
@@ -70,7 +74,7 @@ namespace PyDoodle
 
             if (goodX && goodY)
             {
-                OnTweak(new EventArgs(new V2(x, y)));
+                Attr.SilentSetValue(new V2(x, y));
 
                 Misc.SetCleanColour(_xTextBox, _yTextBox);
             }

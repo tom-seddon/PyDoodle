@@ -27,14 +27,42 @@ namespace PyDoodle
             None,
             Translate,
             Rotate,
+            Handle,
         }
 
         private DragState _dragState;
 
         private PointF _dragControlPos;
-        private PointF _dragScenePos;
+        private V2 _dragScenePos;
+        private Handle _dragHandle;
 
         public PaintEventHandler DelegatedPaint;
+
+        private List<Handle> _handles;
+
+        //private MouseState _lastMouseState;
+        //private MouseState _mouseState;
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        //public class MouseState
+        //{
+        //    private Point _location;
+        //    private V2 _scenePos;
+        //    private MouseButtons _buttons;
+
+        //    public System.Drawing.Point Location { get { return _location; } }
+        //    public PyDoodle.V2 ScenePos { get { return _scenePos; } }
+        //    public System.Windows.Forms.MouseButtons Button { get { return _buttons; } }
+
+        //    public MouseState(Point location, V2 scenePos, MouseButtons buttons)
+        //    {
+        //        _location = location;
+        //        _scenePos = scenePos;
+        //        _buttons = buttons;
+        //    }
+        //}
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
@@ -87,10 +115,32 @@ namespace PyDoodle
             _matrix = new Matrix();
 
             _dragState = DragState.None;
+            _dragHandle = null;
 
             this.Paint += this.HandlePaint;
             this.MouseMove += this.HandleMouseMove;
             this.MouseWheel += this.HandleMouseWheel;
+
+            _handles = new List<Handle>();
+
+            //_mouseState = null;
+            //_lastMouseState = null;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public void ResetHandlesList()
+        {
+            _handles.Clear();
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public void AddHandle(Handle handle)
+        {
+            _handles.Add(handle);
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -101,7 +151,7 @@ namespace PyDoodle
             Matrix m = new Matrix();
 
             {
-                float[] e = _matrix.Elements;
+                float[] e = Transform.Elements;
 
                 if (_yIsUp)
                 {
@@ -126,6 +176,35 @@ namespace PyDoodle
 
             if (this.DelegatedPaint != null)
                 this.DelegatedPaint(sender, pea);
+
+            foreach (Handle handle in _handles)
+                handle.Draw(pea.Graphics);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private V2 GetScenePosForLocation(Point location)
+        {
+            PointF[] locationArray = { location };
+
+            Matrix invTransform = _matrix.Clone();
+            invTransform.Invert();
+
+            invTransform.TransformPoints(locationArray);
+
+            return new V2(locationArray[0].X, locationArray[0].Y);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private PointF GetLocationForScenePos(V2 scenePos)
+        {
+            PointF[] scenePosArray = { new PointF((float)scenePos.x, (float)scenePos.y), };
+            Transform.TransformPoints(scenePosArray);
+
+            return scenePosArray[0];
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -133,28 +212,50 @@ namespace PyDoodle
 
         private void HandleMouseMove(object sender, MouseEventArgs e)
         {
+            //_mouseState = new MouseState(e.Location, GetScenePosForLocation(e.Location), e.Button);
+
             switch (_dragState)
             {
             case DragState.None:
                 {
-                    if ((e.Button & MouseButtons.Middle) != 0)
+                    switch (e.Button)
                     {
-                        _dragControlPos = e.Location;
-
+                    case MouseButtons.None:
                         {
-                            Matrix invMatrix = _matrix.Clone();
-                            invMatrix.Invert();
+                            V2 scenePos = GetScenePosForLocation(e.Location);
 
-                            PointF[] dragScenePos = { e.Location };
-                            invMatrix.TransformPoints(dragScenePos);
-
-                            _dragScenePos = dragScenePos[0];
+                            foreach (Handle handle in _handles)
+                                handle.HandleMouseEvent(sender,e,scenePos);
                         }
+                        break;
 
-                        if ((Control.ModifierKeys & Keys.Alt) != 0)
-                            _dragState = DragState.Translate;
-                        else if ((Control.ModifierKeys & Keys.Control) != 0)
-                            _dragState = DragState.Rotate;
+                    case MouseButtons.Left:
+                        {
+                            V2 scenePos = GetScenePosForLocation(e.Location);
+
+                            foreach (Handle handle in _handles)
+                            {
+                                if (handle.HandleMouseEvent(sender, e, scenePos))
+                                {
+                                    _dragState = DragState.Handle;
+                                    _dragHandle = handle;
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+
+                    case MouseButtons.Middle:
+                        {
+                            _dragControlPos = e.Location;
+                            _dragScenePos = GetScenePosForLocation(e.Location);
+
+                            if ((Control.ModifierKeys & Keys.Alt) != 0)
+                                _dragState = DragState.Translate;
+                            else if ((Control.ModifierKeys & Keys.Control) != 0)
+                                _dragState = DragState.Rotate;
+                        }
+                        break;
                     }
                 }
                 break;
@@ -165,7 +266,7 @@ namespace PyDoodle
                     {
                         float theta = (float)((e.Location.X - _dragControlPos.X) / 10.0 * Math.PI);
 
-                        _matrix.RotateAt(theta, _dragScenePos);
+                        _matrix.RotateAt(theta, _dragScenePos.AsPointF());
 
                         _dragControlPos = e.Location;
 
@@ -188,6 +289,19 @@ namespace PyDoodle
                     }
                     else
                         _dragState = DragState.None;
+                }
+                break;
+
+            case DragState.Handle:
+                {
+                    _dragHandle.HandleMouseEvent(sender, e, GetScenePosForLocation(e.Location));
+
+                    if ((e.Button & MouseButtons.Left) == 0)
+                    {
+                        _dragHandle = null;
+
+                        _dragState = DragState.None;
+                    }
                 }
                 break;
             }
@@ -229,11 +343,7 @@ namespace PyDoodle
         public Matrix Transform
         {
             get { return _matrix; }
-            set
-            {
-                _matrix = value.Clone();
-                this.Invalidate();
-            }
+            set { _matrix = value.Clone(); }
         }
 
         //-///////////////////////////////////////////////////////////////////////

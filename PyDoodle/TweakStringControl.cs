@@ -14,13 +14,16 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public TweakStringControl()
+        public TweakStringControl(Attr attr = null)
+            : base(attr)
         {
             InitializeComponent();
 
             _textBox.TextChanged += HandleTextBoxDirty;
 
             EnterPressed += HandleScriptValueDirty;
+
+            AddAttrValueSetHandler(HandleAttrValueSet);
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -36,7 +39,7 @@ namespace PyDoodle
 
         private void HandleScriptValueDirty(object sender, System.EventArgs e)
         {
-            OnTweak(new EventArgs(_textBox.Text));
+            Attr.SilentSetValue(_textBox.Text);
 
             Misc.SetCleanColour(_textBox);
         }
@@ -44,8 +47,10 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public override void SetValue(dynamic newValue)
+        public void HandleAttrValueSet(object sender,EventArgs e)
         {
+            object newValue = ((Attr)sender).GetValue();
+
             if (newValue is string)
             {
                 _textBox.Text = (string)newValue;

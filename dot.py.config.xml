@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <GraphicsTransformElements>
-    <float>45.536026</float>
-    <float>2.74915147</float>
-    <float>-2.750015</float>
-    <float>45.5359726</float>
-    <float>330.296143</float>
-    <float>450.5699</float>
+    <float>8.337505</float>
+    <float>0</float>
+    <float>0</float>
+    <float>8.337505</float>
+    <float>582</float>
+    <float>387.5</float>
   </GraphicsTransformElements>
   <GraphicsShowGrid>true</GraphicsShowGrid>
   <GraphicsYIsUp>true</GraphicsYIsUp>
   <WindowPlacement>
     <length>44</length>
-    <flags>0</flags>
-    <showCmd>1</showCmd>
+    <flags>2</flags>
+    <showCmd>3</showCmd>
     <ptMinPosition>
       <x>-1</x>
       <y>-1</y>

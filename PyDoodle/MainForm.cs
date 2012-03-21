@@ -85,6 +85,11 @@ namespace PyDoodle
             get { return _tweaksPanel; }
         }
 
+        public GraphicsPanel GraphicsPanel
+        {
+            get { return _graphicsPanel; }
+        }
+
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
@@ -230,6 +235,7 @@ namespace PyDoodle
                 return;
 
             _pydoodleModule.Graphics = g;
+            _pydoodleModule.GraphicsControl = GraphicsPanel.GraphicsControl;
 
             try
             {
@@ -246,7 +252,11 @@ namespace PyDoodle
                 case ScriptState.RunTick:
                     {
                         if (_runPyobj != null)
+                        {
+                            _pydoodleModule.GraphicsControl.ResetHandlesList();
+
                             _objectOperations.InvokeMember(_runPyobj, "tick");
+                        }
                     }
                     break;
                 }
@@ -260,18 +270,9 @@ namespace PyDoodle
 
                 _textPanel.PanelText+="Exception: "+e.Message+Environment.NewLine;
                 _textPanel.PanelText+=Misc.GetScriptExceptionDynamicStackFramesTrace(e);
-
-//                 List<object> keys = new List<object>(from object key in _scriptException.Data.Keys select key);
-//                 List<object> values = new List<object>(from object value in _scriptException.Data.Values select value);
-// 
-//                 for (int i = 0; i < keys.Count; ++i)
-//                 {
-//                     Console.WriteLine("{0} ({1}): {2} ({3})", keys[i], keys[i].GetType(), values[i], values[i].GetType());
-//                 }
-// 
-//                 Console.WriteLine("meh");
             }
 
+            _pydoodleModule.GraphicsControl = null;
             _pydoodleModule.Graphics = null;
         }
 
@@ -357,7 +358,7 @@ namespace PyDoodle
             _pydoodleModule = new pydoodleModule(_scriptEngine, this);
 
             // Link with tweaks panel.
-            _tweaksPanel.Reset(_scriptEngine);
+            _tweaksPanel.Reset();
 
             // Fiddle with python module search paths. Replace "." with the path to the loaded script.
             string filePath = Misc.GetPathDirectoryName(fileName);

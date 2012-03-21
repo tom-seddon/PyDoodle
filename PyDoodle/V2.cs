@@ -22,10 +22,15 @@ namespace PyDoodle
             return new V2(Math.Sin(angle), Math.Cos(angle));
         }
 
-//         public static V2 FromPoint(Point p)
-//         {
-//             return new V2((double)p.X, (double)p.Y);
-//         }
+        internal PointF AsPointF()
+        {
+            return new PointF((float)this.x, (float)this.y);
+        }
+
+        //         public static V2 FromPoint(Point p)
+        //         {
+        //             return new V2((double)p.X, (double)p.Y);
+        //         }
 
         public static V2 operator -(V2 a)
         {
@@ -106,15 +111,15 @@ namespace PyDoodle
             return new V2(-y, x);
         }
 
-//         public PointF GetPointF()
-//         {
-//             return new PointF((float)x, (float)y);
-//         }
+        //         public PointF GetPointF()
+        //         {
+        //             return new PointF((float)x, (float)y);
+        //         }
 
-//         public SizeF GetSizeF()
-//         {
-//             return new SizeF((float)x, (float)y);
-//         }
+        //         public SizeF GetSizeF()
+        //         {
+        //             return new SizeF((float)x, (float)y);
+        //         }
 
         public static V2 Min(V2 a, V2 b)
         {

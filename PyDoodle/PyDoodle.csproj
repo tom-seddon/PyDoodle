@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attr.cs" />
     <Compile Include="FileChangeWatcher.cs" />
     <Compile Include="FloatMouseDragHandler.cs" />
     <Compile Include="GraphicsControl.cs">
@@ -72,6 +73,7 @@
     <Compile Include="GraphicsPanel.Designer.cs">
       <DependentUpon>GraphicsPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Handle.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="pydoodleModule.cs" />
     <Compile Include="NetReceiver.cs" />

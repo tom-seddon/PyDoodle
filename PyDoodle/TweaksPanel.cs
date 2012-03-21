@@ -13,61 +13,68 @@ namespace PyDoodle
 {
     public partial class TweaksPanel : DockContent
     {
-        private ObjectOperations _operations;
         private List<Tweakable> _tweakables;
 
         public TweaksPanel()
         {
             InitializeComponent();
 
-            _operations = null;
             _tweakables = null;
         }
 
-        public void Reset(ScriptEngine se)
+        public void Reset()
         {
             if (_tweakables != null)
             {
                 foreach (Tweakable t in _tweakables)
                 {
                     t.TweakControl.Dispose();
-                    t.label.Dispose();
+                    t.Label.Dispose();
                 }
             }
 
-            _tweakables=new List<Tweakable>();
-
-            _operations=se.CreateOperations();
+            _tweakables = new List<Tweakable>();
 
             ArrangeControls();
         }
 
         private class Tweakable
         {
-            public object Pyobj = null;
-            public string Attr = null;
-            public TweakControl.Creator Creator = null;
+            public Label Label = null;
             public TweakControl TweakControl = null;
-            public Label label = null;
         }
 
-        public void AddTweak(object pyobj, string attr, TweakControl.Creator creator)
+        public void AddTweakControl(TweakControl tweakControl)
         {
-            // don't add if it's already there.
-            foreach (Tweakable ot in _tweakables)
+            Tweakable t = new Tweakable();
+
+            // Add label
             {
-                if (object.ReferenceEquals(pyobj, ot.Pyobj) && attr == ot.Attr && creator == ot.Creator)
-                    return;
+                t.Label = new Label();
+                t.Label.Text = tweakControl.Attr.Name;
+
+                _leftPanel.Controls.Add(t.Label);
+
+                t.Label.Left = 0;
+                t.Label.Width = t.Label.Parent.Width;
+                t.Label.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
             }
 
-            // it isn't already there.
-            Tweakable nt = new Tweakable();
+            // Add tweak control
+            {
+                t.TweakControl = tweakControl;
 
-            nt.Pyobj = pyobj;
-            nt.Attr = attr;
-            nt.Creator = creator;
+                _rightPanel.Controls.Add(t.TweakControl);
 
-            _tweakables.Add(nt);
+                t.TweakControl.Left = 0;
+                t.TweakControl.Width = t.TweakControl.Parent.Width;
+                t.TweakControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+
+                //t.TweakControl.Tweak += this.HandleTweak;
+                t.TweakControl.Tag = t;
+            }
+
+            _tweakables.Add(t);
 
             ArrangeControls();
         }
@@ -87,43 +94,16 @@ namespace PyDoodle
 
             foreach (Tweakable t in _tweakables)
             {
-                // Create controls if necessary
-                if (t.label == null)
-                {
-                    t.label = new Label();
-                    t.label.Text = t.Attr;
+                labelsW = Math.Max(labelsW, t.Label.PreferredWidth);
 
-                    _leftPanel.Controls.Add(t.label);
-
-                    t.label.Left = 0;
-                    t.label.Width = t.label.Parent.Width;
-                    t.label.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
-                }
-
-                if (t.TweakControl == null)
-                {
-                    t.TweakControl = t.Creator();
-
-                    _rightPanel.Controls.Add(t.TweakControl);
-
-                    t.TweakControl.Left = 0;
-                    t.TweakControl.Width = t.TweakControl.Parent.Width;
-                    t.TweakControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
-
-                    t.TweakControl.Tweak += this.HandleTweak;
-                    t.TweakControl.Tag = t;
-                }
-
-                labelsW = Math.Max(labelsW, t.label.PreferredWidth);
-
-                t.label.Top = y;
-                t.label.Height = t.TweakControl.Height;
-                t.label.BackColor = colours[colourIdx];
-                t.label.TextAlign = ContentAlignment.MiddleLeft;
+                t.Label.Top = y;
+                t.Label.Height = t.TweakControl.Height;
+                t.Label.BackColor = colours[colourIdx];
+                t.Label.TextAlign = ContentAlignment.MiddleLeft;
 
                 t.TweakControl.Top = y;
                 t.TweakControl.BackColor = colours[colourIdx];
-                t.TweakControl.SetValue(_operations.GetMember(t.Pyobj, t.Attr));
+                //t.TweakControl.SetValue(t.Attr.GetValue());
 
                 y += t.TweakControl.Height;
                 colourIdx ^= 1;
@@ -138,13 +118,12 @@ namespace PyDoodle
             _splitContainer.SplitterDistance = labelsW + 10;
         }
 
-        private void HandleTweak(object sender, TweakControl.EventArgs ea)
-        {
-            TweakControl tweakControl = sender as TweakControl;
-            Tweakable t = tweakControl.Tag as Tweakable;
-
-            if (_operations != null)
-                _operations.SetMember(t.Pyobj, t.Attr, ea.Value);
-        }
+//         private void HandleTweak(object sender, TweakControl.EventArgs ea)
+//         {
+//             TweakControl tweakControl = sender as TweakControl;
+//             Tweakable t = tweakControl.Tag as Tweakable;
+// 
+//             t.Attr.SetValue(ea.Value);
+//         }
     }
 }

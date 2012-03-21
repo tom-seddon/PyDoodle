@@ -19,7 +19,8 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public TweakFloatControl()
+        public TweakFloatControl(Attr attr = null)
+            : base(attr)
         {
             InitializeComponent();
 
@@ -34,6 +35,8 @@ namespace PyDoodle
             _textBox.TextChanged += this.HandleTextBoxTextChanged;
 
             EnterPressed += this.HandleScriptValueDirty;
+
+            AddAttrValueSetHandler(HandleAttrValueSet);
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -44,7 +47,7 @@ namespace PyDoodle
             double value;
             if (double.TryParse(_textBox.Text, out value))
             {
-                OnTweak(new EventArgs(_isFloat ? (float)value : value));
+                Attr.SilentSetValue(_isFloat ? (float)value : value);
 
                 Misc.SetCleanColour(_textBox);
             }
@@ -63,8 +66,10 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public override void SetValue(dynamic newValue)
+        private void HandleAttrValueSet(object sender, EventArgs e)
         {
+            object newValue = ((Attr)sender).GetValue();
+
             if (newValue is float || newValue is double)
             {
                 _isFloat = newValue is float;

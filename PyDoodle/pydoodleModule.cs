@@ -8,6 +8,7 @@ using IronPython.Runtime.Types;
 using System.Windows.Forms;
 using System.Drawing;
 using IronPython.Runtime;
+using System.Drawing.Drawing2D;
 
 namespace PyDoodle
 {
@@ -19,10 +20,19 @@ namespace PyDoodle
         private MainForm _mainForm;
         private Graphics _graphics;
         private ObjectOperations _operations;
+        private GraphicsControl _graphicsControl;
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
-        
+
+        public GraphicsControl GraphicsControl
+        {
+            get { return _graphicsControl; }
+            set { _graphicsControl = value; }
+        }
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         public Graphics Graphics
         {
             get { return _graphics; }
@@ -31,7 +41,12 @@ namespace PyDoodle
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
-        
+
+        public ObjectOperations ObjectOperations { get { return _operations; } }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
         class DrawState : ICloneable
         {
             private Color _colour;
@@ -82,12 +97,12 @@ namespace PyDoodle
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
-        
+
         private Stack<DrawState> _drawStateStack;
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
-        
+
         public pydoodleModule(ScriptEngine se, MainForm mainForm)
         {
             _mainForm = mainForm;
@@ -103,8 +118,8 @@ namespace PyDoodle
             ss.SetVariable("set_draw_colour_rgba", new Action<float, float, float, float>(this.set_draw_colour_rgba));
             ss.SetVariable("set_draw_colour_rgb", new Action<float, float, float>(this.set_draw_colour_rgb));
             ss.SetVariable("tweakn", new tweaknType(this.tweakn));
-            //ss.SetVariable("handle", new handleDelegate(this.handle));
-            ss.SetVariable("ref_test",new ref_testDelegate(this.ref_test));
+            ss.SetVariable("Attr", DynamicHelpers.GetPythonTypeFromType(typeof(Attr)));
+            ss.SetVariable("TranslateHandle", DynamicHelpers.GetPythonTypeFromType(typeof(TranslateHandle)));
 
             _drawStateStack = new Stack<DrawState>();
             _drawStateStack.Push(new DrawState());
@@ -114,22 +129,7 @@ namespace PyDoodle
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
-        
-        private delegate void ref_testDelegate(ref float f, ref V2 v);
-        private void ref_test(ref float f, ref V2 v)
-        {
-            Console.WriteLine("ref_test: in: f={0} v={1}", f, v);
 
-            f += 1f;
-            v.x += 1.0;
-            v.y += 1.0;
-
-            Console.WriteLine("ref_test: out: f={0} v={1}", f, v);
-        }
-
-        //-///////////////////////////////////////////////////////////////////////
-        //-///////////////////////////////////////////////////////////////////////
-        
         private void set_draw_colour_rgb(float r, float g, float b)
         {
             set_draw_colour_rgba(r, g, b, 1.0f);
@@ -137,7 +137,7 @@ namespace PyDoodle
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
-        
+
         private static int GetColourByte(float v)
         {
             if (v < .0f)
@@ -207,86 +207,177 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public delegate void tweaknType(CodeContext context, object pyobj, params string[] attrs);
-        public void tweakn(CodeContext context, object pyobj, params object[] attrs)
+        public delegate void tweaknType(CodeContext context, params Attr[] attrs);
+        public void tweakn(CodeContext context, params Attr[] attrs)
         {
             for (int i = 0; i < attrs.Length; ++i)
             {
-                int argIdx = 1 + i;
-                string attrName = null;
-                PythonDictionary attrDict = null;
+                Attr attr = attrs[i];
 
-                // Pull out 
-                if (attrs[i] is string)
-                    attrName = (string)attrs[i];
-                else if (attrs[i] is PythonTuple)
-                {
-                    PythonTuple tuple = (PythonTuple)attrs[i];
+                // @TODO: this is a bit mucky...
+                attr.Module = this;
 
-                    switch (tuple.Count)
-                    {
-                    default:
-                        throw new ArgumentException("Argument {0} - must be (str,) or (str,dict).");
+                TweakControl tweakControl = null;
 
-                    case 1:
-                        {
-                            if (!(tuple[0] is string))
-                                goto default;
-
-                            attrName = (string)tuple[0];
-                        }
-                        break;
-
-                    case 2:
-                        {
-                            if (!(tuple[1] is PythonDictionary))
-                                goto default;
-
-                            attrDict = (PythonDictionary)tuple[1];
-                        }
-                        goto case 1;
-                    }
-                }
-                else
-                    throw new ArgumentException(string.Format("Argument {0} - unsupported type, {1}.", argIdx, attrs[i].GetType()));
-
-                TweakControl.Creator creator = null;
-
-                dynamic attrValue = _operations.GetMember(pyobj, attrName);
+                object attrValue = attr.GetValue();
 
                 // Check...
                 if (attrValue is string)
-                    creator = TweakControl.CreateTweakControl<TweakStringControl>;
+                    tweakControl = new TweakStringControl(attr);
                 else if (attrValue is V2)
-                    creator = TweakControl.CreateTweakControl<TweakV2Control>;
+                    tweakControl = new TweakV2Control(attr);
                 else if (attrValue is float || attrValue is double)
-                    creator = TweakControl.CreateTweakControl<TweakFloatControl>;
+                    tweakControl = new TweakFloatControl(attr);
                 else
-                    throw new ArgumentException(string.Format("Attribute {0} - unsupported type, {1}.", attrName, attrName.GetType()));
+                    throw new ArgumentException(string.Format("Attribute {0} - no tweaker for type {1}.", attr.Name, attrValue.GetType()));
 
-                _mainForm.TweaksPanel.AddTweak(pyobj, attrName, creator);
+                _mainForm.TweaksPanel.AddTweakControl(tweakControl);
+
+                // Install handler?
+                if (attr.Handle != null)
+                {
+                    if (attr.AutoCreateHandleField)
+                        _operations.SetMember(attr.Pyobj, attr.Name + "_handle", attr.Handle);
+
+                    attr.Handle.Attr = attr;
+                }
             }
         }
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-//         private delegate void handleDelegate(CodeContext context, object pyobj, params string[] attrs);
-//         private void handle(CodeContext context, object pyobj, params string[] attrs)
-//         {
-//             if (_graphics == null)
-//                 return;
-// 
-//             foreach (string attr in attrs)
-//             {
-//                 dynamic attrValue = _operations.GetMember(pyobj, attrName);
-// 
-//                 if (attrValue is V2)
-//                 {
-// 
-//                 }
-//             }
-//         }
+        public class TranslateHandle : Handle
+        {
+            //-///////////////////////////////////////////////////////////////////////
+            //-///////////////////////////////////////////////////////////////////////
+
+            private Matrix _transform;
+            private bool _dragging;
+            private V2 _dragDelta;
+            private float _radius;
+            private bool _hot;
+
+            //-///////////////////////////////////////////////////////////////////////
+            //-///////////////////////////////////////////////////////////////////////
+
+            public TranslateHandle()
+            {
+                _radius = 10;//in pixels.
+                _transform = null;
+                _dragging = false;
+                _hot = false;
+            }
+
+            //-///////////////////////////////////////////////////////////////////////
+            //-///////////////////////////////////////////////////////////////////////
+
+            /// <summary>
+            /// call tick() from python code. It stores the current graphics
+            /// transform and adds the handle to the list of handles to be
+            /// active this frame.
+            /// </summary>
+            public void tick()
+            {
+                Graphics g = this.Attr.Module.Graphics;
+                GraphicsControl gc = this.Attr.Module.GraphicsControl;
+
+                if (g != null && gc != null)
+                {
+                    _transform = g.Transform;
+
+                    gc.AddHandle(this);
+                }
+            }
+
+            //-///////////////////////////////////////////////////////////////////////
+            //-///////////////////////////////////////////////////////////////////////
+
+            public override void Draw(Graphics g)
+            {
+                if (_transform == null)
+                    return;
+
+                PointF screenPos = Misc.TransformPoint(_transform, (V2)this.Attr.GetValue()).AsPointF();
+
+                GraphicsState gs = g.Save();
+
+                g.ResetClip();
+                g.ResetTransform();
+
+                Color colour;
+                if (_hot)
+                    colour = Color.LightGray;
+                else
+                    colour = Color.Black;
+
+                g.FillEllipse(new SolidBrush(colour), screenPos.X - _radius, screenPos.Y - _radius, _radius * 2, _radius * 2);
+
+                g.Restore(gs);
+            }
+
+            //-///////////////////////////////////////////////////////////////////////
+            //-///////////////////////////////////////////////////////////////////////
+
+            public override bool HandleMouseEvent(object sender, MouseEventArgs mea, V2 mouseScenePos)
+            {
+                if (_transform == null)
+                {
+                    _dragging = false;
+                    return false;
+                }
+
+                V2 mouseScreenPos = new V2(mea.Location.X, mea.Location.Y);
+
+                bool hover = false;
+                V2 delta = V2.V00;
+
+                if (!_dragging)
+                {
+                    V2 screenPos = Misc.TransformPoint(_transform, (V2)this.Attr.GetValue());
+
+                    delta = mouseScreenPos - screenPos;
+
+                    if (delta.GetLengthSq() < _radius * _radius)
+                        hover = true;
+                }
+
+                if ((mea.Button & MouseButtons.Left) != 0)
+                {
+                    if (!_dragging)
+                    {
+                        if (hover)
+                        {
+                            _dragDelta = delta;
+                            _dragging = true;
+                        }
+                    }
+                    else
+                    {
+                        Matrix invTransform = _transform.Clone();
+                        invTransform.Invert();
+
+                        V2 screenPos = mouseScreenPos + _dragDelta;
+                        V2 scenePos = Misc.TransformPoint(invTransform, screenPos);
+
+                        this.Attr.SetValue(scenePos);
+                    }
+                }
+                else
+                {
+                    _dragging = false;
+                }
+
+                if (hover)
+                    _hot = true;
+                else if (_dragging)
+                    _hot = true;
+                else
+                    _hot = false;
+
+                return _dragging;
+            }
+        }
 
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////

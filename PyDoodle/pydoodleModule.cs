@@ -58,6 +58,27 @@ namespace PyDoodle
         // variable.
         private List<Attr> _attrPool;
 
+        private List<SavedAttrValue> _savedAttrValues;
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        public List<SavedAttrValue> GetSavedAttrValues()
+        {
+            List<SavedAttrValue> savedAttrValues = new List<SavedAttrValue>();
+
+            // Copy the ones in the attribute pool.
+            savedAttrValues.AddRange(from attr in _attrPool select attr.GetSavedValue());
+
+            // Copy any that haven't been used yet.
+            //
+            // @TODO maybe not such a great idea.
+            if(_savedAttrValues!=null)
+                savedAttrValues.AddRange(_savedAttrValues);
+
+            return savedAttrValues;
+        }
+
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
@@ -81,9 +102,10 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        public pydoodleModule(ScriptEngine se, MainForm mainForm)
+        public pydoodleModule(ScriptEngine se, MainForm mainForm, List<SavedAttrValue> savedAttrValues)
         {
             _mainForm = mainForm;
+            _savedAttrValues = savedAttrValues;
 
             ScriptScope ss = Python.CreateModule(se, "pydoodle");
 
@@ -91,6 +113,12 @@ namespace PyDoodle
             ss.SetVariable("V2", DynamicHelpers.GetPythonTypeFromType(typeof(V2)));
 
             ss.SetVariable("line", new Action<V2, V2>(this.line));
+
+            ss.SetVariable("circlearc", new Action<V2, float, float, float>(this.circlearc));
+            ss.SetVariable("fcirclearc", new Action<V2, float, float, float>(this.fcirclearc));
+
+            ss.SetVariable("ellipsearc", new Action<V2, float, float, float, float>(this.ellipsearc));
+            ss.SetVariable("fellipsearc", new Action<V2, float, float, float, float>(this.fellipsearc));
 
             ss.SetVariable("circle", new Action<V2, float>(this.circle));
             ss.SetVariable("fcircle", new Action<V2, float>(this.fcircle));
@@ -145,6 +173,54 @@ namespace PyDoodle
             }
 
             _attrPool.Add(newAttr);
+
+            // Got an equivalent in the saved attributes list?
+            if (_savedAttrValues != null)
+            {
+                Type valueType = null;
+                object value = newAttr.GetValue();
+                if (value != null)
+                    valueType = value.GetType();
+
+                int index = -1;
+
+                for (int i = 0; i < _savedAttrValues.Count; ++i)
+                {
+                    SavedAttrValue sav = _savedAttrValues[i];
+
+                    if (sav.Name == name)
+                    {
+                        Type savedType = null;
+                        if (sav.Value != null)
+                            savedType = sav.Value.GetType();
+
+                        bool match = false;
+
+                        if (valueType == savedType)
+                            match = true;
+                        else if ((valueType == typeof(float) || valueType == typeof(double)) &&
+                            (savedType == typeof(float) || savedType == typeof(double)))
+                        {
+                            // float, double, float, double... *shrug*
+                            match = true;
+                        }
+
+                        if (match)
+                        {
+                            index = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (index >= 0)
+                {
+                    newAttr.SetValue(_savedAttrValues[index].Value);
+
+                    _savedAttrValues.RemoveAt(index);
+                }
+            }
+
             return newAttr;
         }
 
@@ -189,6 +265,44 @@ namespace PyDoodle
                 return;
 
             _graphics.DrawLine(_drawPen, (float)a.x, (float)a.y, (float)b.x, (float)b.y);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void circlearc(V2 c, float r, float theta0, float theta1)
+        {
+            ellipsearc(c, r, r, theta0, theta1);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void fcirclearc(V2 c, float r, float theta0, float theta1)
+        {
+            fellipsearc(c, r, r, theta0, theta1);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void ellipsearc(V2 c, float rx, float ry, float theta0, float theta1)
+        {
+            if (_graphics == null)
+                return;
+
+            _graphics.DrawArc(_drawPen, (float)c.x - rx, (float)c.y - ry, rx * 2f, ry * 2f, theta0, theta1 - theta0);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void fellipsearc(V2 c, float rx, float ry, float theta0, float theta1)
+        {
+            if (_graphics == null)
+                return;
+
+            _graphics.FillPie(_drawBrush, (float)c.x - rx, (float)c.y - ry, rx * 2f, ry * 2f, theta0, theta1 - theta0);
         }
 
         //-///////////////////////////////////////////////////////////////////////

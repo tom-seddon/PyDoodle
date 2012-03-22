@@ -13,9 +13,18 @@ namespace PyDoodle
 {
     public partial class TextPanel : DockContent
     {
+        private bool _clearOnNextText;
+
         public TextPanel()
         {
             InitializeComponent();
+
+            _clearOnNextText = false;
+        }
+
+        public bool ClearOnNextText
+        {
+            set { _clearOnNextText = value; }
         }
 
         public void ClearText()
@@ -25,6 +34,13 @@ namespace PyDoodle
 
         public void AppendText(string text)
         {
+            if (_clearOnNextText)
+            {
+                ClearText();
+
+                _clearOnNextText = false;
+            }
+
             _textBox.AppendText(text);
         }
 

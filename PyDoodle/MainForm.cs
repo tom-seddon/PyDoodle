@@ -252,10 +252,12 @@ namespace PyDoodle
                     {
                         if (_runPyobj != null)
                         {
-                            _textPanel.ClearText();
+                            //_textPanel.ClearText();
                             _pydoodleModule.GraphicsControl.ResetHandlesList();
 
                             _objectOperations.InvokeMember(_runPyobj, "tick");
+
+                            _textPanel.ClearOnNextText = true;
                         }
                     }
                     break;
@@ -266,10 +268,10 @@ namespace PyDoodle
                 _scriptException = e;
                 _scriptState = ScriptState.Borked;
 
-                //_textPanel.ClearText();
-
                 _textPanel.AppendText("Exception: " + e.Message + Environment.NewLine);
                 _textPanel.AppendText(Misc.GetScriptExceptionDynamicStackFramesTrace(e));
+
+                _graphicsPanel.GraphicsControl.ResetHandlesList();
             }
 
             _pydoodleModule.EndDraw();
@@ -335,6 +337,14 @@ namespace PyDoodle
 
         private void RunScript(string fileName, bool loadLayoutForScript)
         {
+            List<SavedAttrValue> savedAttrValues = null;
+
+            if (_scriptFileName != null)
+            {
+                if (Misc.AreFileNamesEqual(fileName, _scriptFileName))
+                    savedAttrValues = _pydoodleModule.GetSavedAttrValues();
+            }
+
             SaveStateForScript();
 
             StopScript();
@@ -360,10 +370,11 @@ namespace PyDoodle
             _objectOperations = _scriptEngine.CreateOperations();
 
             // Add pydoodle module.
-            _pydoodleModule = new pydoodleModule(_scriptEngine, this);
+            _pydoodleModule = new pydoodleModule(_scriptEngine, this, savedAttrValues);
 
-            // Link with tweaks panel.
+            // Reset panels.
             _tweaksPanel.Reset();
+            _textPanel.ClearText();
 
             // Fiddle with python module search paths. Replace "." with the path to the loaded script.
             string filePath = Misc.GetPathDirectoryName(fileName);
@@ -392,13 +403,13 @@ namespace PyDoodle
 
             // If it's broken already, the module file names list might not
             // include the module that threw the exception. So, try to find that
-            // from the exception.
-            //
-            // 
+            // from the exception. Also, always add the script file name.
             if (_scriptState == ScriptState.Borked)
             {
                 foreach (DynamicStackFrame stackFrame in Misc.GetScriptExceptionDynamicStackFrames(_scriptException))
                     moduleFileNames.Add(stackFrame.GetFileName());
+
+                moduleFileNames.Add(_scriptFileName);
             }
 
             // Watch for further changes.

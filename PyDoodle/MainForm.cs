@@ -252,6 +252,7 @@ namespace PyDoodle
                     {
                         if (_runPyobj != null)
                         {
+                            _textPanel.ClearText();
                             _pydoodleModule.GraphicsControl.ResetHandlesList();
 
                             _objectOperations.InvokeMember(_runPyobj, "tick");
@@ -265,10 +266,10 @@ namespace PyDoodle
                 _scriptException = e;
                 _scriptState = ScriptState.Borked;
 
-                _textPanel.PanelText="";
+                //_textPanel.ClearText();
 
-                _textPanel.PanelText+="Exception: "+e.Message+Environment.NewLine;
-                _textPanel.PanelText+=Misc.GetScriptExceptionDynamicStackFramesTrace(e);
+                _textPanel.AppendText("Exception: " + e.Message + Environment.NewLine);
+                _textPanel.AppendText(Misc.GetScriptExceptionDynamicStackFramesTrace(e));
             }
 
             _pydoodleModule.EndDraw();
@@ -349,6 +350,12 @@ namespace PyDoodle
             options["Debug"] = true;
 
             _scriptEngine = Python.CreateEngine(options);
+
+            Stream tmp = new TextPanel.WriteStream(_textPanel);
+            StreamWriter tmpWriter = new StreamWriter(tmp);
+
+            _scriptEngine.Runtime.IO.SetOutput(tmp, tmpWriter);
+            _scriptEngine.Runtime.IO.SetErrorOutput(tmp, tmpWriter);
 
             _objectOperations = _scriptEngine.CreateOperations();
 

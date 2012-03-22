@@ -9,6 +9,9 @@ class Rect:
         add_translate_handles(attrs(self,"a","b"))
         add_rotate_handles(attrs(self,"theta"))
 
+        print "flah"
+        print "flah2"
+
     def tick(self):
         set_colour(Colour(0.7,0.7,0.7))
         fbox(self.a,self.b)
@@ -16,5 +19,9 @@ class Rect:
         self.a_handle.tick()
         self.b_handle.tick()
         self.theta_handle.tick(self.a)
+
+        print self.a
+        print self.b
+        print self.theta
 
 run(Rect())

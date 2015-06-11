@@ -21,7 +21,7 @@ namespace PyDoodle
 
         public static V2 from_angle(double angle)
         {
-            return new V2(Math.Sin(angle), Math.Cos(angle));
+            return new V2(Math.Cos(angle), Math.Sin(angle));
         }
 
         internal PointF AsPointF()

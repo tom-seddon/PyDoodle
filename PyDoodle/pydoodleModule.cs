@@ -73,7 +73,7 @@ namespace PyDoodle
             // Copy any that haven't been used yet.
             //
             // @TODO maybe not such a great idea.
-            if(_savedAttrValues!=null)
+            if (_savedAttrValues != null)
                 savedAttrValues.AddRange(_savedAttrValues);
 
             return savedAttrValues;

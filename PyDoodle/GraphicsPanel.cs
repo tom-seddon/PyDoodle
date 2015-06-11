@@ -53,7 +53,7 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        private void ResetGraphicsTransform()
+        public void ResetGraphicsTransform()
         {
             GraphicsTransform = new Matrix(1f, 0f, 0f, 1f, this.Width * .5f, this.Height * .5f);
         }

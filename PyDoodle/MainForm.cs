@@ -165,7 +165,7 @@ namespace PyDoodle
             StopScript();
 
             if (_main.LastFile != null)
-                RunScript(_main.LastFile, true);
+                RunScript(_main.LastFile, true, false);
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -204,7 +204,7 @@ namespace PyDoodle
             {
                 string fileName = tsmi.Tag as string;
                 if (fileName != null)
-                    RunScript(fileName, true);
+                    RunScript(fileName, true, false);
             }
         }
 
@@ -293,7 +293,7 @@ namespace PyDoodle
             if (result != DialogResult.OK)
                 return;
 
-            RunScript(ofd.FileName, true);
+            RunScript(ofd.FileName, true, false);
         }
 
         //-///////////////////////////////////////////////////////////////////////
@@ -301,9 +301,17 @@ namespace PyDoodle
 
         private void HandleFileChangeWatcherChanged(object sender, FileSystemEventArgs fsea)
         {
+            RestartScript(true);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void RestartScript(bool keepValues)
+        {
             if (_scriptState != ScriptState.RerunPending)
             {
-                this.BeginInvoke(new Action<string, bool>(this.RunScript), new object[] { _scriptFileName, false, });
+                this.BeginInvoke(new Action<string, bool, bool>(this.RunScript), new object[] { _scriptFileName, false, keepValues, });
 
                 _scriptState = ScriptState.RerunPending;
             }
@@ -335,14 +343,17 @@ namespace PyDoodle
         //-///////////////////////////////////////////////////////////////////////
         //-///////////////////////////////////////////////////////////////////////
 
-        private void RunScript(string fileName, bool loadLayoutForScript)
+        private void RunScript(string fileName, bool loadLayoutForScript, bool mayKeepValues)
         {
             List<SavedAttrValue> savedAttrValues = null;
 
-            if (_scriptFileName != null)
+            if (mayKeepValues)
             {
-                if (Misc.AreFileNamesEqual(fileName, _scriptFileName))
-                    savedAttrValues = _pydoodleModule.GetSavedAttrValues();
+                if (_scriptFileName != null)
+                {
+                    if (Misc.AreFileNamesEqual(fileName, _scriptFileName))
+                        savedAttrValues = _pydoodleModule.GetSavedAttrValues();
+                }
             }
 
             SaveStateForScript();
@@ -563,6 +574,73 @@ namespace PyDoodle
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(this, "An interactive programmable plaything", "PyDoodle");
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void viewToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void yIsUpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ToggleMenuItem(sender);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void showgridToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ToggleMenuItem(sender);
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void resetCameraToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _graphicsPanel.ResetGraphicsTransform();
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void ToggleMenuItem(object item)
+        {
+            ToolStripMenuItem tsmi = (ToolStripMenuItem)item;
+
+            tsmi.Checked = !tsmi.Checked;
+            UpdateChecks();
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void viewToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
+        {
+            UpdateChecks();
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void UpdateChecks()
+        {
+            yIsUpToolStripMenuItem.Checked = _graphicsPanel.GraphicsYIsUp;
+            showgridToolStripMenuItem.Checked = _graphicsPanel.GraphicsShowGrid;
+        }
+
+        //-///////////////////////////////////////////////////////////////////////
+        //-///////////////////////////////////////////////////////////////////////
+
+        private void resetScriptToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RestartScript(false);
         }
 
         //-///////////////////////////////////////////////////////////////////////

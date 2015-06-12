@@ -1,0 +1,293 @@
+* PyDoodle
+
+An interactive programmable plaything.
+
+* Prerequisites
+
+- IronPython 2.7.x :: http://ironpython.codeplex.com/releases/view/169382
+
+* Introduction
+
+There is a pre-built version in the bin folder that can be run
+straight away after cloning the repo or downloading a ZIP.
+
+** Opening file
+
+Use =File=|=Open...= and open [[examples/pt_in_rect.py]]. You should see
+some kind of a display appear.
+
+** Dockable UI
+
+PyDoodle has a UI consisting of dockable windows that work a bit like
+those of Visual Studio. There are three windows: =Graphics=, showing
+you the graphical output from the script; =Text=, showing you the text
+output from the script; and =Tweaks=, where you can view and edit
+variables exposed be the script.
+
+By default these three windows are on top of one another in a tabbed
+fashion. Drag one by the tabs to move it about. You can have it as a
+free-floating window, or dock it to a side of the main window.
+
+** Mouse navigation
+
+Use mouse wheel to zoom, Alt+middle button to pan, Ctrl+middle button
+to rotate. Try zooming in now - you should see a box with some circles
+and discs around it.
+
+** Translate handles
+
+Dark grey discs are translate handles - left-drag to move them.
+
+[[./images/translator.png]]
+
+In =pt_in_rect=, one of the translate handles controls (a bit
+indirectly...) the rect's size. The other is just a marker. (When the
+marker is inside the rectangle, the rectangle is red; when outside,
+the rectangle is black.)
+
+** Rotate handles
+
+Circles are rotate handles. Left-drag the smaller circle to rotate.
+
+[[./images/rotator.png]]
+
+=pt_in_rect= has a rotate manipulator at the centre. You can rotate
+the rectangle using it.
+
+** Tweaks
+
+Translators and rotators manipulate values that can also be displayed
+in the =Tweaks= panel. You can type values in directly, or middle-drag
+the text boxes to increase or decrease the numbers. (This may or may
+not be more intuitive than using the manipulators.)
+
+[[./images/tweaks.png]]
+
+=pt_in_rect= has one tweakable value: =theta=, the rotation angle.
+
+* Writing new scripts
+
+A worked example and some basic reference material. Please also
+consult the examples in [[examples/]].
+
+** Basics
+
+Start your Python script off by importing everything from the
+=pydoodle= module. 
+
+: from pydoodle import *
+
+(This module is magically available when you open your script in
+PyDoodle.)
+
+Your interactive plaything is represented by an ordinary Python class
+with one method, =tick=, that takes no arguments.
+
+: class Example:
+:     def tick(self): pass
+
+Tell PyDoodle which class to use by passing an instance to the =run=
+function.
+
+: run(Example())
+
+You now have a valid PyDoodle script:
+
+#+BEGIN_SRC python
+  from pydoodle import *
+  class Example:
+      def tick(self): pass
+  run(Example())
+#+END_SRC
+
+Save it and load it into PyDoodle. (Since it doesn't do anything,
+nothing will appear to happen.)
+
+PyDoodle is watching your script for changes and will reload it
+automatically when you save it from your text editor. So, try adding a
+=print= to =tick=:
+
+#+BEGIN_SRC python
+  from pydoodle import *
+  class Example:
+      def tick(self): print "hello"
+  run(Example())
+#+END_SRC
+
+This will make a =hello= appear in the Text window.
+
+Try introducing an error by changing =print= to =pront=. Then change
+it back.
+
+PyDoodle calls your =tick= function repeatedly in a loop. It handles
+the UI, then calls =tick=. After calling =tick=, it draws whatever
+=tick= requested in the Graphics panel, and prints whatever it printed
+in the Text panel (clearing it first).
+
+(This does mean you have to take care not to introduce an infinite
+loop in your Python code! If that happens, restart PyDoodle.)
+
+Try printing a different value each time:
+
+#+BEGIN_SRC python
+  from pydoodle import *
+  class Example:
+      def __init__(self): self.n=0
+      def tick(self):
+          print self.n
+          self.n+=1
+  run(Example())
+#+END_SRC
+
+You can draw graphics as well. Here's a simple line:
+
+#+BEGIN_SRC python
+  from pydoodle import *
+  class Example:
+      def tick(self):
+          set_colour(Colour(0,0,0))
+          line(V2(0,0),V2(100,100))
+  run(Example())
+#+END_SRC
+
+You can put the line coordinates in variables, and open them up for
+direct manipulation. Left-drag the grey circles to move the line
+around.
+
+#+BEGIN_SRC python
+  from pydoodle import *
+  class Example:
+      def __init__(self):
+          self.a=V2(0,0) ; self.b=V2(10,10)
+          add_translate_handles(attrs(self,"a","b"))
+      def tick(self):
+          set_colour(Colour(0,0,0))
+          line(self.a,self.b)
+          self.a_handle.tick() ; self.b_handle.tick()
+  run(Example())
+#+END_SRC
+
+And you can also have PyDoodle provide text boxes showing the
+underlying values. Press Return to commit changes you've entered. You
+can also middle-drag on the text boxes to change the values with the
+mouse.
+
+#+BEGIN_SRC python
+  from pydoodle import *
+  class Example:
+      def __init__(self):
+          self.a=V2(0,0) ; self.b=V2(10,10)
+          xs=attrs(self,"a","b")
+          add_translate_handles(xs)
+          tweaks(xs)
+      def tick(self):
+          set_colour(Colour(0,0,0))
+          line(self.a,self.b)
+          self.a_handle.tick() ; self.b_handle.tick()
+  run(Example())
+#+END_SRC
+
+
+
+** Colour and vector types
+
+The vector type is called V2. Its constructor takes 2 arguments, the x
+and y coordinates, and it has two attributes, =x= and =y=. It has a
+fairly comprehensive set of operators. See [[PyDoodle/V2.cs]].
+
+The colour type is called Colour. Its constructor takes 3 or 4
+arguments: red, green, blue, and, optionally, alpha. All are floats
+between 0 and 1. Alpha is assumed to be 1.0 if not supplied.
+
+** Drawing stuff
+
+The following should get you started:
+
+- =set_colour(Colour)= :: set the drawing colour (used for drawing
+     everything)
+
+- =line(V2,V2)= :: draw a line between two
+                   points
+
+- =circle(V2,float)=, =fcircle(V2,float)= :: draw a circle with the
+     given centre and radius, as an outline (=circle=) or filled
+     (=fcircle=)
+
+- =box(V2,V2)=, =fbox(V2,V2)= :: draw a box with the given corners, as
+     an outline (=box=) or filled (=fbox)
+
+- =text(V2,str)= :: draw text at the given position
+
+** Adding translate handles
+
+To add translate handles, use the =add_translate_handles= function.
+
+This function takes an attribute list, which is something you can
+create using the =attrs= function. Pass the object (probably =self=)
+as the 1st argument, and the attribute names as strings as the
+remaining arguments.
+
+You'll need to tick the handles in your tick function. Each handle is
+named after the attribute it controls, with a =_handle= suffix.
+
+For example, suppose you added translate handles for attributes =a=
+and =b=:
+
+: add_translate_handles(attrs(self,"a","b"))
+
+In =tick=, you would need to tick the corresponding handles as
+follows:
+
+: self.a_handle.tick()
+: self.b_handle.tick()
+
+** Adding rotate handles
+
+To add rotate handles, use the =add_rotate_handles= function. Follow
+the instructions provided for translate handles - they are added in
+the same way.
+
+When ticking your rotate handles, pass in the coordinate for the
+rotate handle. (See [[examples/rect.py]].)
+
+** Adding tweakables
+
+To add tweaks, use the =tweaks= function. Pass in an attribute list
+(created the same way as for handles).
+
+Floats and V2s are tweakable.
+
+* Future plans
+
+
+
+* Other notes
+
+** Docking UI
+
+The docking UI is provided under the following licence:
+
+#+BEGIN_QUOTE
+The MIT License
+
+Copyright (c) 2007 Weifen Luo (email: weifenluo@yahoo.com)
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#+END_QUOTE

@@ -5,10 +5,11 @@ class PtInRect:
     def __init__(self):
         self.hsize=V2(5,5)
         self.pt=V2(0,0)
-        self.theta=0
+        self.theta=0.0
 
         add_translate_handles(attrs(self,"hsize","pt"))
         add_rotate_handles(attrs(self,"theta"))
+        tweaks(attrs(self,"theta"))
 
     def tick(self):
         scale=2

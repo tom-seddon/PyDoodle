@@ -6,3 +6,5 @@ PyDoodle/bin
 PyDoodle/obj
 *.suo
 DockPanel_Src/DockPanel.chw
+*.py.layout.xml
+*.py.config.xml

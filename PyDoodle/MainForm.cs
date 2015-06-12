@@ -480,8 +480,14 @@ namespace PyDoodle
                 return;
 
             // Save layout
+            try
             {
                 _dockPanel.SaveAsXml(GetLayoutFileName(_scriptFileName), Misc.defaultXmlEncoding);
+            }
+            catch (IOException)
+            {
+                // These can leak from DockPanel.SaveAsXml. Just ignore them.
+                // It's not exactly the end of the world.
             }
 
             // Save config

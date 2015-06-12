@@ -257,11 +257,38 @@ To add tweaks, use the =tweaks= function. Pass in an attribute list
 
 Floats and V2s are tweakable.
 
-* Future plans
+* Bugs and stuff
 
+- Exception reporting isn't always the greatest
 
+- That infinite loop thing needs fixing...
+
+- Having to tick the handles is a bit annoying (some handles will
+  always need additional information, but they should at least do
+  something reasonable without any effort)
+
+- etc., etc.
 
 * Other notes
+
+** PyDoodle
+
+PyDoodle is provided under the GPL.
+
+Copyright 2012, 2015 by Tom Seddon.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ** Docking UI
 

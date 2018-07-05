@@ -9,3 +9,5 @@ DockPanel_Src/DockPanel.chw
 *.py.layout.xml
 *.py.config.xml
 /README.html
+/PyDoodle/.vs
+**/[Pp]ackages/*
